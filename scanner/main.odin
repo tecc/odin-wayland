@@ -144,5 +144,5 @@ read_file :: proc(filename: string) -> Protocol {
 
 main :: proc() {
    context.logger = log.create_console_logger(opt={.Level})
-   protocol := read_file("protocol/wayland.xml")
+   protocol := read_file("../protocols/wayland.xml")
 }

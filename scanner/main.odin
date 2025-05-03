@@ -3,7 +3,10 @@ import "core:fmt"
 import "core:encoding/xml"
 import "core:log"
 import "core:strings"
-import "base:runtime"
+import "core:flags"
+import "core:os"
+import "core:path/filepath"
+
 Procedure_Type :: enum {
    Request,
    Event,
@@ -149,9 +152,10 @@ parse_procedure :: proc(doc: ^xml.Document, id: u32, type: Procedure_Type) -> Pr
 read_file :: proc(filename: string) -> Protocol {
    doc, err := xml.load_from_file(filename)
    if err != nil {
-      log.error("Error reading file:", filename)
-      return {}
+      fmt.println("Error reading file:", filename)
+      os.exit(1)
    }
+   fmt.println("Parsing:", filename)
    protocol : Protocol
    name, found := find_attr(doc,0,"name"); assert(found)
    protocol.name = name
@@ -205,9 +209,31 @@ read_file :: proc(filename: string) -> Protocol {
    return protocol
 }
 
-
+generate_code :: proc(protocol: Protocol) -> string {
+   return ""
+}
 main :: proc() {
-   context.logger = log.create_console_logger(opt={.Level})
-   protocol := read_file("../protocols/wayland.xml")
-   log.debug("Done")
+   options : struct {
+      input: string `args:"pos=0,required" usage:"Wayland xml protocol path."`,
+		output: string `args:"pos=1" usage:"Odin output path."`,
+		verbose: bool `args:"pos=2" usage:"Show verbose output."`,
+   }
+   style := flags.Parsing_Style.Odin
+   flags.parse_or_exit(&options, os.args, style)
+   context.logger = log.create_console_logger(opt={}) if options.verbose else log.Logger{}
+   protocol := read_file(options.input)
+   output_filename : string
+   if options.output != "" {
+      output_filename = options.output
+   }
+   else {
+      output_filename = strings.concatenate({filepath.stem(options.input), ".odin"})
+   }
+   fmt.println("Outputting to:", output_filename)
+   code := generate_code(protocol)
+   if !os.write_entire_file(output_filename, transmute([]u8)code) {
+      fmt.println("There was an error outputting to the file:", os.get_last_error())
+      return
+   }
+   fmt.println("Done")
 }

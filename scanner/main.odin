@@ -15,7 +15,9 @@ Procedure :: struct {
    name: string,
    description: string,
    type: Procedure_Type,
-   args: []Argument
+   args: []Argument, // This does not include ret
+   ret: Argument,
+   is_destructor: bool
 }
 
 Enum_Entry :: struct {
@@ -34,7 +36,7 @@ Interface :: struct {
    description: string,
    requests: []Procedure,
    events: []Procedure,
-   enumerations: []Enumeration,
+   enums: []Enumeration,
 }
 
 Protocol :: struct {
@@ -51,7 +53,6 @@ Argument_Type :: enum {
    Object,
    Array,
    Fd,
-   Interface,
    Enum,
 }
 Argument :: struct {
@@ -60,9 +61,9 @@ Argument :: struct {
 
    nullable: bool,
 
-   // If type is either of them
    interface_name: string,
-   enum_name: string
+   enum_name: string // If type is enum
+
    // TODO: summary
 }
 get_description :: proc(doc: ^xml.Document, id: u32) -> string {
@@ -102,48 +103,87 @@ get_argument_type :: proc(text: string) -> (type: Argument_Type) {
    }
    return
 }
+
+get_argument_text :: proc(arg: Argument) -> string {
+   sb: strings.Builder
+   fmt.sbprintf(&sb, "%v: ", arg.name)
+   type_text: string
+   switch arg.type {
+      case .New_Id, .Object:
+         type_text = arg.interface_name if arg.interface_name != "" else "rawptr"
+      case .Enum:
+         type_text = arg.enum_name
+      case .Int, .Fd:
+         type_text = "int"
+      case .Unsigned:
+         type_text = "uint"
+      case .Fixed:
+         type_text = "fixed_t"
+      case .String:
+         type_text = "cstring"
+      case .Array:
+         type_text = "array"
+   }
+   fmt.sbprint(&sb, type_text)
+   return strings.to_string(sb)
+}
+
 find_attr :: xml.find_attribute_val_by_key
 find_child :: xml.find_child_by_ident
 
-parse_argument :: proc(doc: ^xml.Document, id:  u32) -> Argument {
-   arg := Argument {
-      name = get_name(doc, id),
-   }
-   enum_name, enum_found := find_attr(doc,id,"enum")
-   if enum_found {
-      arg.type = .Enum
-      arg.enum_name = enum_name
-   }
-   interface_name, interface_found := find_attr(doc, id, "interface")
-   if interface_found {
-      arg.type = .Interface
-      arg.interface_name = interface_name
-
-   }
-   if !enum_found && !interface_found {
-      type_name, type_found := find_attr(doc,id,"type")
-      if !type_found {
-         // @Incomplete
-      }
-      arg.type = get_argument_type(type_name)
-   }
-
-   log.debug("\t\t","Argument:", arg.name)
-   return arg
+after_underscore :: proc(s: string) -> string {
+   index := strings.index_byte(s, '_')
+   return s[index+1:]
 }
 
-parse_procedure :: proc(doc: ^xml.Document, id: u32, type: Procedure_Type) -> Procedure {
+parse_procedure :: proc(doc: ^xml.Document, id: u32, type: Procedure_Type, interface_name: string) -> Procedure {
    procedure := Procedure {
       name=get_name(doc,id),
       description=get_description(doc, id),
       type=type
    }
+   type_name, found := find_attr(doc, id, "type")
+   if !found do procedure.is_destructor = false
+   else if type_name == "destructor" do procedure.is_destructor = true
+
    args : [dynamic]Argument
    log.debug("\t","Event:", procedure.name)
    for arg_id in iterate_child(doc, id, "arg") {
-      arg := parse_argument(doc, arg_id)
-      append(&args, arg)
+      arg := Argument {
+         name = get_name(doc, id),
+      }
+      enum_name, enum_found := find_attr(doc,id,"enum")
+      if enum_found {
+         arg.type = .Enum
+         if strings.contains_rune(enum_name,'.') {
+            // wl_output.transform -> output_transform
+            enum_name, _ = strings.replace_all(after_underscore(enum_name), ".", "_")
+         }
+         arg.enum_name = fmt.aprintf("%v_%v", interface_name, enum_name)
+
+      }
+      interface_name, interface_found := find_attr(doc, id, "interface")
+      if interface_found {
+         arg.interface_name = after_underscore(interface_name)
+      }
+      if !enum_found {
+         type_name, type_found := find_attr(doc,id,"type")
+         if !type_found {
+            // @Incomplete
+         }
+         arg.type = get_argument_type(type_name)
+      }
+
+      log.debug("\t\t","Argument:", arg.name)
+      if arg.type == .New_Id {
+         procedure.ret = arg
+      }
+      else {
+         append(&args, arg)
+      }
    }
+
+
    procedure.args = args[:]
    return procedure
 }
@@ -161,20 +201,19 @@ read_file :: proc(filename: string) -> Protocol {
    protocol.name = name
    interfaces: [dynamic]Interface
    for interface_id in iterate_child(doc,0,"interface") {
-
       interface : Interface
-      interface.name = get_name(doc,interface_id)
+      interface.name = after_underscore(get_name(doc,interface_id))
       interface.description = get_description(doc, interface_id)
       requests : [dynamic]Procedure
       events : [dynamic]Procedure
       enums : [dynamic]Enumeration
       log.debug(interface.name)
       for request_id in iterate_child(doc,interface_id, "request") {
-         request := parse_procedure(doc, request_id, .Request)
+         request := parse_procedure(doc, request_id, .Request, interface.name)
          append(&requests, request)
       }
       for event_id in iterate_child(doc,interface_id,"event") {
-         event := parse_procedure(doc, event_id, .Event)
+         event := parse_procedure(doc, event_id, .Event, interface.name)
          append(&events, event)
       }
       for enum_id in iterate_child(doc, interface_id,"enum") {
@@ -199,10 +238,11 @@ read_file :: proc(filename: string) -> Protocol {
             log.debug("\t\t","Entry:", entry.name)
          }
          enumeration.entries = entries[:]
+         append(&enums, enumeration)
       }
       interface.requests = requests[:]
       interface.events = events[:]
-      interface.enumerations = enums[:]
+      interface.enums = enums[:]
       append(&interfaces, interface)
    }
    protocol.interfaces = interfaces[:]
@@ -210,21 +250,69 @@ read_file :: proc(filename: string) -> Protocol {
 }
 
 generate_code :: proc(protocol: Protocol) -> string {
-   builder: strings.Builder
-   strings.write_string(&builder, "#+build linux\n")
-   fmt.sbprintln(&builder,"package",protocol.name)
+   sb: strings.Builder
+   strings.write_string(&sb, "#+build linux\n")
+   fmt.sbprintln(&sb,"package",protocol.name)
    for interface in protocol.interfaces {
-         underscore_index := strings.index_byte(interface.name, '_')
-         stripped_name := interface.name[underscore_index+1:]
+         fmt.sbprintfln(&sb,"%v :: struct {{}}", interface.name)
+         fmt.sbprintfln(&sb,"%v_interface : interface", interface.name)
+         fmt.sbprintfln(&sb,
+`%[0]v_set_user_data :: proc(%[0]v: ^%[0]v, user_data: rawptr) {{
+   proxy_set_user_data(cast(^proxy)%[0]v, user_data)
+}}
 
-         // This is actually wrong but doesn't matter
-         fmt.sbprintln(&builder,stripped_name,":: distinct interface")
+%[0]v_get_user_data :: proc(%[0]v: ^%[0]v) -> rawptr {{
+   return proxy_get_user_data(cast(^proxy)%[0]v)
+}}
+`, interface.name)
+         has_destroy := false
+         opcode := 0
+         for request in interface.requests {
+            upper_interface_name := strings.to_upper(interface.name)
+            upper_request_name := strings.to_upper(request.name)
+            fmt.sbprintfln(&sb,"%v_%v :: %v",upper_interface_name, upper_request_name, opcode)
+
+            if request.name == "destroy" do has_destroy = true
+
+
+            if request.is_destructor {
+
+            }
+            opcode += 1
+         }
+         if !has_destroy && interface.name != "display" {
+            fmt.sbprintfln(&sb,
+`%[0]v_destroy :: proc(%[0]v: ^%[0]v) {{
+   proxy_destroy(cast(^proxy)%[0]v)
+}}
+`, interface.name)
+         }
+         if len(interface.events) != 0 {
+            fmt.sbprintfln(&sb, "%v_listener :: struct {{",interface.name)
+            for event in interface.events {
+               fmt.sbprintf(&sb,"\t%v : proc(data: rawptr, %v: %v", event.name, interface.name, interface.name)
+               for arg, i in event.args {
+                  fmt.sbprintf(&sb, ", %v",get_argument_text(arg))
+               }
+
+               fmt.sbprintln(&sb, ") -> rawptr,")
+            }
+            fmt.sbprintln(&sb, "}")
+            fmt.sbprintfln(&sb, "%v_add_listener :: proc(%[0]v: ^%[0]v, listener: ^%[0]v_listener, data: rawptr) {{",interface.name)
+            fmt.sbprintfln(&sb, "\tproxy_add_listener(cast(^proxy)%v, cast(^generic_c_call)listener,data)", interface.name)
+            fmt.sbprintln(&sb, "}")
+         }
+         for enumeration in interface.enums {
+            fmt.sbprintfln(&sb, "%v_%v :: enum {{", interface.name, enumeration.name)
+            fmt.sbprintln(&sb, "}")
+         }
+
    }
    if protocol.name == "wayland" {
-      fmt.sbprintln(&builder, `import "core:c"`)
-      fmt.sbprintln(&builder,`foreign import wl_lib "system:wayland-client"`)
+      fmt.sbprintln(&sb, `import "core:c"`)
+      fmt.sbprintln(&sb,`foreign import wl_lib "system:wayland-client"`)
 
-      strings.write_string(&builder,
+      strings.write_string(&sb,
 `@(default_calling_convention="c")
 @(link_prefix="wl_")
 foreign wl_lib {
@@ -273,8 +361,29 @@ foreign wl_lib {
    proxy_set_queue                           :: proc(p: ^proxy, queue: ^event_queue) ---
 }`)
    }
+   else {
+      fmt.sbprintln(&sb, `import wl "shared:wayland"`)
+      add_wl_name(&sb, "fixed_t")
+      add_wl_name(&sb, "array")
+      add_wl_name(&sb, "generic_c_call")
+      add_wl_name(&sb, "proxy_add_listener")
+      add_wl_name(&sb, "proxy_get_listener")
+      add_wl_name(&sb, "proxy_get_user_data")
+      add_wl_name(&sb, "proxy_set_user_data")
+      add_wl_name(&sb, "proxy_marshal")
+      add_wl_name(&sb, "proxy_marshal_array")
+      add_wl_name(&sb, "proxy_marshal_flags")
+      add_wl_name(&sb, "proxy_marshal_array_flags")
+      add_wl_name(&sb, "proxy_marshal_constructor")
+      add_wl_name(&sb, "proxy_destroy")
+   }
 
-   return strings.to_string(builder)
+   return strings.to_string(sb)
+}
+
+add_wl_name :: proc(sb: ^strings.Builder, func_name: string) {
+   fmt.sbprintln(sb, "@(private)")
+   fmt.sbprintfln(sb, "%v :: wl.%v", func_name)
 }
 main :: proc() {
    options : struct {

@@ -229,9 +229,12 @@ read_file :: proc(filename: string) -> Protocol {
             if !found {
                // @Incomplete
             }
-
+            name = get_name(doc, entry_id)
+            if name[0] <= '9' && name[0] >= '0' {
+               name = strings.concatenate({"_", name})
+            }
             entry := Enum_Entry {
-               name = get_name(doc,entry_id),
+               name = name,
                value = value
             }
             append(&entries, entry)
@@ -304,6 +307,9 @@ generate_code :: proc(protocol: Protocol) -> string {
          }
          for enumeration in interface.enums {
             fmt.sbprintfln(&sb, "%v_%v :: enum {{", interface.name, enumeration.name)
+            for entry in enumeration.entries {
+               fmt.sbprintfln(&sb, "\t%v = %v,", entry.name, entry.value)
+            }
             fmt.sbprintln(&sb, "}")
          }
 

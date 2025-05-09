@@ -18,7 +18,7 @@ interface :: struct {
    method_count: i32,
    methods: [^]message,
    event_count: i32,
-   events: [^]message
+   events: [^]message,
 }
 array :: struct {
    size: i64,

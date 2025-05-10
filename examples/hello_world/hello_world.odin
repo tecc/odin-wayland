@@ -1,6 +1,7 @@
 package hello_world
 import wl "shared:wayland"
 import "core:fmt"
+import "base:runtime"
 
 compositor : ^wl.compositor
 global_context: runtime.Context

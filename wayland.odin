@@ -1,5 +1,6 @@
 #+build linux
 package wayland
+@(private)
 types := []^interface {
 	nil,
 	nil,

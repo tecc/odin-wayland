@@ -346,8 +346,8 @@ generate_code :: proc(protocol: Protocol, package_name: string) -> string {
       fmt.sbprintln(&sb, "\tnil,")
    }
    for interface in protocol.interfaces {
-      generate_types(&sb, interface.requests, protocol)
-      generate_types(&sb, interface.events, protocol)
+      get_types_text(&sb, interface.requests, protocol)
+      get_types_text(&sb, interface.events, protocol)
    }
    fmt.sbprintln(&sb, "}")
 
@@ -503,15 +503,15 @@ foreign wl_lib {
    display_read_events                       :: proc(display: ^display) -> int ---
    display_set_max_buffer_size               :: proc(display: ^display, max_buffer_size: c.size_t) ---
 
-   proxy_marshal_flags                       :: proc(p: ^proxy, opcode: uint, intf: ^interface, version: uint, flags: uint, args: ..any) -> ^proxy ---
+   proxy_marshal_flags                       :: proc(p: ^proxy, opcode: uint, intf: ^interface, version: uint, flags: uint, #c_vararg args: ..any) -> ^proxy ---
    proxy_marshal_array_flags                 :: proc(p: ^proxy, opcode: uint, intf: ^interface, version: uint, flags: uint, args: ^argument) -> ^proxy ---
-   proxy_marshal                             :: proc(p: ^proxy, opcode: uint, args: ..any) ---
+   proxy_marshal                             :: proc(p: ^proxy, opcode: uint, #c_vararg args: ..any) ---
    proxy_marshal_array                       :: proc(p: ^proxy, opcode: uint, args: ^argument) ---
    proxy_create                              :: proc(factory: ^proxy, intf: ^interface) -> ^proxy ---
    proxy_create_wrapper                      :: proc(proxy: rawptr) -> rawptr ---
    proxy_wrapper_destroy                     :: proc(proxy_wrapper: rawptr) ---
-   proxy_marshal_constructor                 :: proc(p: ^proxy, opcode: uint, intf: ^interface, args: ..any) -> ^proxy ---
-   proxy_marshal_constructor_versioned       :: proc(p: ^proxy, opcode: uint, intf: ^interface, version: uint, args: ..any) -> ^proxy ---
+   proxy_marshal_constructor                 :: proc(p: ^proxy, opcode: uint, intf: ^interface, #c_vararg args: ..any) -> ^proxy ---
+   proxy_marshal_constructor_versioned       :: proc(p: ^proxy, opcode: uint, intf: ^interface, version: uint, #c_vararg args: ..any) -> ^proxy ---
    proxy_marshal_array_constructor           :: proc(p: ^proxy, opcode: uint, args: ^argument, intf: ^interface) -> ^proxy ---
    proxy_marshal_array_constructor_versioned :: proc(p: ^proxy, opcode: uint, args: ^argument, intf: ^interface, version: uint) -> ^proxy ---
    proxy_destroy                             :: proc(p: ^proxy) ---
@@ -552,7 +552,7 @@ foreign wl_lib {
    return strings.to_string(sb)
 }
 type_index := 0
-generate_types :: proc(sb: ^strings.Builder, procedures: []Procedure, protocol: Protocol) {
+get_types_text :: proc(sb: ^strings.Builder, procedures: []Procedure, protocol: Protocol) {
    for &procedure in procedures {
       if procedure.all_null {
          procedure.type_index = 0

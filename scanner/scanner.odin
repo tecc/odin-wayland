@@ -549,9 +549,7 @@ foreign wl_lib {
          add_wl_name(&sb, "proxy_set_user_data")
          add_wl_name(&sb, "proxy_get_version")
          add_wl_name(&sb, "proxy_marshal")
-         add_wl_name(&sb, "proxy_marshal_array")
          add_wl_name(&sb, "proxy_marshal_flags")
-         add_wl_name(&sb, "proxy_marshal_array_flags")
          add_wl_name(&sb, "proxy_marshal_constructor")
          add_wl_name(&sb, "proxy_destroy")
       }

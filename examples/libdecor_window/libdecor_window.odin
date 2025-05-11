@@ -117,9 +117,9 @@ frame_configure :: proc "c" (frame: ^libdecor.frame, configuration: ^libdecor.co
 	}
 
 	if changed do window.buffer = create_frame_buffer()
-   wl.surface_attach(window.surface, window.buffer, 0,0)
-   wl.surface_damage_buffer(window.surface,0,0,window.width, window.height)
-   wl.surface_commit(window.surface)
+	wl.surface_attach(window.surface, window.buffer, 0,0)
+	wl.surface_damage_buffer(window.surface,0,0,window.width, window.height)
+	wl.surface_commit(window.surface)
 }
 frame_close :: proc "c" (frame: ^libdecor.frame, user_data: rawptr) {
 	os.exit(0)
@@ -142,36 +142,36 @@ frame_iface := libdecor.frame_interface {
 }
 
 buffer_listener := wl.buffer_listener {
-   	release = buffer_release
+   release = buffer_release
 }
 registry_listener := wl.registry_listener {
-      global = registry_global,
-      global_remove = registry_global_remove,
+	global = registry_global,
+	global_remove = registry_global_remove,
 }
 main :: proc() {
-   global_context = context
-   window = { width = 800, floating_width = 800, height = 600, floating_height = 600 }
-   window.display = wl.display_connect(nil)
-   if window.display != nil {
-      fmt.println("Successfully connected to a wayland display.")
-   }
-   else {
-      fmt.println("Failed to connect to a wayland display")
-      return
-   }
-   registry := wl.display_get_registry(window.display)
-   wl.registry_add_listener(registry, &registry_listener, nil)
-   wl.display_roundtrip(window.display)
-   window.surface = wl.compositor_create_surface(window.compositor)
+	global_context = context
+	window = { width = 800, floating_width = 800, height = 600, floating_height = 600 }
+	window.display = wl.display_connect(nil)
+	if window.display != nil {
+	fmt.println("Successfully connected to a wayland display.")
+	}
+	else {
+	fmt.println("Failed to connect to a wayland display")
+	return
+	}
+	registry := wl.display_get_registry(window.display)
+	wl.registry_add_listener(registry, &registry_listener, nil)
+	wl.display_roundtrip(window.display)
+	window.surface = wl.compositor_create_surface(window.compositor)
 	window.instance = libdecor.new(window.display, &iface)
-
+	
 	// libdecor.set_handle_application_cursor(window.instance, true)
 	window.frame = libdecor.decorate(window.instance, window.surface, &frame_iface,nil)
 	libdecor.frame_set_app_id(window.frame, "odin-libdecor-window")
 	libdecor.frame_set_title(window.frame, "Hellope from libdecor!")
-
+	
 	libdecor.frame_map(window.frame)
-
+	
 	for libdecor.dispatch(window.instance, -1) >= 0 {
 	}
 

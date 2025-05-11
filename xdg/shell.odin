@@ -1,7 +1,7 @@
 #+build linux
 package xdg_shell
 @(private)
-types := []^interface {
+xdg_shell_types := []^interface {
 	nil,
 	nil,
 	nil,
@@ -121,15 +121,15 @@ wm_base_error :: enum {
 }
 @(private)
 wm_base_requests := []message {
-	{"destroy", "", raw_data(types)[0:]},
-	{"create_positioner", "n", raw_data(types)[4:]},
-	{"get_xdg_surface", "no", raw_data(types)[5:]},
-	{"pong", "u", raw_data(types)[0:]},
+	{"destroy", "", raw_data(xdg_shell_types)[0:]},
+	{"create_positioner", "n", raw_data(xdg_shell_types)[4:]},
+	{"get_xdg_surface", "no", raw_data(xdg_shell_types)[5:]},
+	{"pong", "u", raw_data(xdg_shell_types)[0:]},
 }
 
 @(private)
 wm_base_events := []message {
-	{"ping", "u", raw_data(types)[0:]},
+	{"ping", "u", raw_data(xdg_shell_types)[0:]},
 }
 
 wm_base_interface : interface
@@ -332,16 +332,16 @@ positioner_constraint_adjustment :: enum {
 }
 @(private)
 positioner_requests := []message {
-	{"destroy", "", raw_data(types)[0:]},
-	{"set_size", "ii", raw_data(types)[0:]},
-	{"set_anchor_rect", "iiii", raw_data(types)[0:]},
-	{"set_anchor", "u", raw_data(types)[0:]},
-	{"set_gravity", "u", raw_data(types)[0:]},
-	{"set_constraint_adjustment", "u", raw_data(types)[0:]},
-	{"set_offset", "ii", raw_data(types)[0:]},
-	{"set_reactive", "3", raw_data(types)[0:]},
-	{"set_parent_size", "3ii", raw_data(types)[0:]},
-	{"set_parent_configure", "3u", raw_data(types)[0:]},
+	{"destroy", "", raw_data(xdg_shell_types)[0:]},
+	{"set_size", "ii", raw_data(xdg_shell_types)[0:]},
+	{"set_anchor_rect", "iiii", raw_data(xdg_shell_types)[0:]},
+	{"set_anchor", "u", raw_data(xdg_shell_types)[0:]},
+	{"set_gravity", "u", raw_data(xdg_shell_types)[0:]},
+	{"set_constraint_adjustment", "u", raw_data(xdg_shell_types)[0:]},
+	{"set_offset", "ii", raw_data(xdg_shell_types)[0:]},
+	{"set_reactive", "3", raw_data(xdg_shell_types)[0:]},
+	{"set_parent_size", "3ii", raw_data(xdg_shell_types)[0:]},
+	{"set_parent_configure", "3u", raw_data(xdg_shell_types)[0:]},
 }
 
 positioner_interface : interface
@@ -549,16 +549,16 @@ surface_error :: enum {
 }
 @(private)
 surface_requests := []message {
-	{"destroy", "", raw_data(types)[0:]},
-	{"get_toplevel", "n", raw_data(types)[7:]},
-	{"get_popup", "n?oo", raw_data(types)[8:]},
-	{"set_window_geometry", "iiii", raw_data(types)[0:]},
-	{"ack_configure", "u", raw_data(types)[0:]},
+	{"destroy", "", raw_data(xdg_shell_types)[0:]},
+	{"get_toplevel", "n", raw_data(xdg_shell_types)[7:]},
+	{"get_popup", "n?oo", raw_data(xdg_shell_types)[8:]},
+	{"set_window_geometry", "iiii", raw_data(xdg_shell_types)[0:]},
+	{"ack_configure", "u", raw_data(xdg_shell_types)[0:]},
 }
 
 @(private)
 surface_events := []message {
-	{"configure", "u", raw_data(types)[0:]},
+	{"configure", "u", raw_data(xdg_shell_types)[0:]},
 }
 
 surface_interface : interface
@@ -1052,28 +1052,28 @@ toplevel_wm_capabilities :: enum {
 }
 @(private)
 toplevel_requests := []message {
-	{"destroy", "", raw_data(types)[0:]},
-	{"set_parent", "?o", raw_data(types)[11:]},
-	{"set_title", "s", raw_data(types)[0:]},
-	{"set_app_id", "s", raw_data(types)[0:]},
-	{"show_window_menu", "ouii", raw_data(types)[12:]},
-	{"move", "ou", raw_data(types)[16:]},
-	{"resize", "ouu", raw_data(types)[18:]},
-	{"set_max_size", "ii", raw_data(types)[0:]},
-	{"set_min_size", "ii", raw_data(types)[0:]},
-	{"set_maximized", "", raw_data(types)[0:]},
-	{"unset_maximized", "", raw_data(types)[0:]},
-	{"set_fullscreen", "?o", raw_data(types)[21:]},
-	{"unset_fullscreen", "", raw_data(types)[0:]},
-	{"set_minimized", "", raw_data(types)[0:]},
+	{"destroy", "", raw_data(xdg_shell_types)[0:]},
+	{"set_parent", "?o", raw_data(xdg_shell_types)[11:]},
+	{"set_title", "s", raw_data(xdg_shell_types)[0:]},
+	{"set_app_id", "s", raw_data(xdg_shell_types)[0:]},
+	{"show_window_menu", "ouii", raw_data(xdg_shell_types)[12:]},
+	{"move", "ou", raw_data(xdg_shell_types)[16:]},
+	{"resize", "ouu", raw_data(xdg_shell_types)[18:]},
+	{"set_max_size", "ii", raw_data(xdg_shell_types)[0:]},
+	{"set_min_size", "ii", raw_data(xdg_shell_types)[0:]},
+	{"set_maximized", "", raw_data(xdg_shell_types)[0:]},
+	{"unset_maximized", "", raw_data(xdg_shell_types)[0:]},
+	{"set_fullscreen", "?o", raw_data(xdg_shell_types)[21:]},
+	{"unset_fullscreen", "", raw_data(xdg_shell_types)[0:]},
+	{"set_minimized", "", raw_data(xdg_shell_types)[0:]},
 }
 
 @(private)
 toplevel_events := []message {
-	{"configure", "iia", raw_data(types)[0:]},
-	{"close", "", raw_data(types)[0:]},
-	{"configure_bounds", "4ii", raw_data(types)[0:]},
-	{"wm_capabilities", "5a", raw_data(types)[0:]},
+	{"configure", "iia", raw_data(xdg_shell_types)[0:]},
+	{"close", "", raw_data(xdg_shell_types)[0:]},
+	{"configure_bounds", "4ii", raw_data(xdg_shell_types)[0:]},
+	{"wm_capabilities", "5a", raw_data(xdg_shell_types)[0:]},
 }
 
 toplevel_interface : interface
@@ -1238,23 +1238,23 @@ popup_error :: enum {
 }
 @(private)
 popup_requests := []message {
-	{"destroy", "", raw_data(types)[0:]},
-	{"grab", "ou", raw_data(types)[22:]},
-	{"reposition", "3ou", raw_data(types)[24:]},
+	{"destroy", "", raw_data(xdg_shell_types)[0:]},
+	{"grab", "ou", raw_data(xdg_shell_types)[22:]},
+	{"reposition", "3ou", raw_data(xdg_shell_types)[24:]},
 }
 
 @(private)
 popup_events := []message {
-	{"configure", "iiii", raw_data(types)[0:]},
-	{"popup_done", "", raw_data(types)[0:]},
-	{"repositioned", "3u", raw_data(types)[0:]},
+	{"configure", "iiii", raw_data(xdg_shell_types)[0:]},
+	{"popup_done", "", raw_data(xdg_shell_types)[0:]},
+	{"repositioned", "3u", raw_data(xdg_shell_types)[0:]},
 }
 
 popup_interface : interface
 
 @(private)
 @(init)
-init_interfaces :: proc() {
+init_interfaces_xdg_shell :: proc() {
 	wm_base_interface.name = "xdg_wm_base"
 	wm_base_interface.version = 7
 	wm_base_interface.method_count = 4
@@ -1285,10 +1285,9 @@ init_interfaces :: proc() {
 	popup_interface.methods = raw_data(popup_requests)
 	popup_interface.events = raw_data(popup_events)
 }
-import "core:mem"
 
 // Functions from libwayland-client
-import wl "../"
+import wl "shared:wayland"
 fixed_t :: wl.fixed_t
 proxy :: wl.proxy
 message :: wl.message
@@ -1301,8 +1300,6 @@ proxy_get_user_data :: wl.proxy_get_user_data
 proxy_set_user_data :: wl.proxy_set_user_data
 proxy_get_version :: wl.proxy_get_version
 proxy_marshal :: wl.proxy_marshal
-proxy_marshal_array :: wl.proxy_marshal_array
 proxy_marshal_flags :: wl.proxy_marshal_flags
-proxy_marshal_array_flags :: wl.proxy_marshal_array_flags
 proxy_marshal_constructor :: wl.proxy_marshal_constructor
 proxy_destroy :: wl.proxy_destroy

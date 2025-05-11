@@ -1,7 +1,7 @@
 #+build linux
 package wayland
 @(private)
-types := []^interface {
+wayland_types := []^interface {
 	nil,
 	nil,
 	nil,
@@ -152,14 +152,14 @@ display_error :: enum {
 }
 @(private)
 display_requests := []message {
-	{"sync", "n", raw_data(types)[8:]},
-	{"get_registry", "n", raw_data(types)[9:]},
+	{"sync", "n", raw_data(wayland_types)[8:]},
+	{"get_registry", "n", raw_data(wayland_types)[9:]},
 }
 
 @(private)
 display_events := []message {
-	{"error", "ous", raw_data(types)[0:]},
-	{"delete_id", "u", raw_data(types)[0:]},
+	{"error", "ous", raw_data(wayland_types)[0:]},
+	{"delete_id", "u", raw_data(wayland_types)[0:]},
 }
 
 display_interface : interface
@@ -231,13 +231,13 @@ registry_add_listener :: proc "contextless" (registry_: ^registry, listener: ^re
 }
 @(private)
 registry_requests := []message {
-	{"bind", "usun", raw_data(types)[0:]},
+	{"bind", "usun", raw_data(wayland_types)[0:]},
 }
 
 @(private)
 registry_events := []message {
-	{"global", "usu", raw_data(types)[0:]},
-	{"global_remove", "u", raw_data(types)[0:]},
+	{"global", "usu", raw_data(wayland_types)[0:]},
+	{"global_remove", "u", raw_data(wayland_types)[0:]},
 }
 
 registry_interface : interface
@@ -270,7 +270,7 @@ callback_add_listener :: proc "contextless" (callback_: ^callback, listener: ^ca
 }
 @(private)
 callback_events := []message {
-	{"done", "u", raw_data(types)[0:]},
+	{"done", "u", raw_data(wayland_types)[0:]},
 }
 
 callback_interface : interface
@@ -307,8 +307,8 @@ compositor_destroy :: proc "contextless" (compositor_: ^compositor) {
 
 @(private)
 compositor_requests := []message {
-	{"create_surface", "n", raw_data(types)[10:]},
-	{"create_region", "n", raw_data(types)[11:]},
+	{"create_surface", "n", raw_data(wayland_types)[10:]},
+	{"create_region", "n", raw_data(wayland_types)[11:]},
 }
 
 compositor_interface : interface
@@ -373,9 +373,9 @@ shm_pool_resize :: proc "contextless" (shm_pool_: ^shm_pool, size_: int) {
 
 @(private)
 shm_pool_requests := []message {
-	{"create_buffer", "niiiiu", raw_data(types)[12:]},
-	{"destroy", "", raw_data(types)[0:]},
-	{"resize", "i", raw_data(types)[0:]},
+	{"create_buffer", "niiiiu", raw_data(wayland_types)[12:]},
+	{"destroy", "", raw_data(wayland_types)[0:]},
+	{"resize", "i", raw_data(wayland_types)[0:]},
 }
 
 shm_pool_interface : interface
@@ -577,13 +577,13 @@ shm_format :: enum {
 }
 @(private)
 shm_requests := []message {
-	{"create_pool", "nhi", raw_data(types)[18:]},
-	{"release", "2", raw_data(types)[0:]},
+	{"create_pool", "nhi", raw_data(wayland_types)[18:]},
+	{"release", "2", raw_data(wayland_types)[0:]},
 }
 
 @(private)
 shm_events := []message {
-	{"format", "u", raw_data(types)[0:]},
+	{"format", "u", raw_data(wayland_types)[0:]},
 }
 
 shm_interface : interface
@@ -644,12 +644,12 @@ buffer_add_listener :: proc "contextless" (buffer_: ^buffer, listener: ^buffer_l
 }
 @(private)
 buffer_requests := []message {
-	{"destroy", "", raw_data(types)[0:]},
+	{"destroy", "", raw_data(wayland_types)[0:]},
 }
 
 @(private)
 buffer_events := []message {
-	{"release", "", raw_data(types)[0:]},
+	{"release", "", raw_data(wayland_types)[0:]},
 }
 
 buffer_interface : interface
@@ -830,18 +830,18 @@ data_offer_error :: enum {
 }
 @(private)
 data_offer_requests := []message {
-	{"accept", "u?s", raw_data(types)[0:]},
-	{"receive", "sh", raw_data(types)[0:]},
-	{"destroy", "", raw_data(types)[0:]},
-	{"finish", "3", raw_data(types)[0:]},
-	{"set_actions", "3uu", raw_data(types)[0:]},
+	{"accept", "u?s", raw_data(wayland_types)[0:]},
+	{"receive", "sh", raw_data(wayland_types)[0:]},
+	{"destroy", "", raw_data(wayland_types)[0:]},
+	{"finish", "3", raw_data(wayland_types)[0:]},
+	{"set_actions", "3uu", raw_data(wayland_types)[0:]},
 }
 
 @(private)
 data_offer_events := []message {
-	{"offer", "s", raw_data(types)[0:]},
-	{"source_actions", "3u", raw_data(types)[0:]},
-	{"action", "3u", raw_data(types)[0:]},
+	{"offer", "s", raw_data(wayland_types)[0:]},
+	{"source_actions", "3u", raw_data(wayland_types)[0:]},
+	{"action", "3u", raw_data(wayland_types)[0:]},
 }
 
 data_offer_interface : interface
@@ -982,19 +982,19 @@ data_source_error :: enum {
 }
 @(private)
 data_source_requests := []message {
-	{"offer", "s", raw_data(types)[0:]},
-	{"destroy", "", raw_data(types)[0:]},
-	{"set_actions", "3u", raw_data(types)[0:]},
+	{"offer", "s", raw_data(wayland_types)[0:]},
+	{"destroy", "", raw_data(wayland_types)[0:]},
+	{"set_actions", "3u", raw_data(wayland_types)[0:]},
 }
 
 @(private)
 data_source_events := []message {
-	{"target", "?s", raw_data(types)[0:]},
-	{"send", "sh", raw_data(types)[0:]},
-	{"cancelled", "", raw_data(types)[0:]},
-	{"dnd_drop_performed", "3", raw_data(types)[0:]},
-	{"dnd_finished", "3", raw_data(types)[0:]},
-	{"action", "3u", raw_data(types)[0:]},
+	{"target", "?s", raw_data(wayland_types)[0:]},
+	{"send", "sh", raw_data(wayland_types)[0:]},
+	{"cancelled", "", raw_data(wayland_types)[0:]},
+	{"dnd_drop_performed", "3", raw_data(wayland_types)[0:]},
+	{"dnd_finished", "3", raw_data(wayland_types)[0:]},
+	{"action", "3u", raw_data(wayland_types)[0:]},
 }
 
 data_source_interface : interface
@@ -1137,19 +1137,19 @@ data_device_error :: enum {
 }
 @(private)
 data_device_requests := []message {
-	{"start_drag", "?oo?ou", raw_data(types)[21:]},
-	{"set_selection", "?ou", raw_data(types)[25:]},
-	{"release", "2", raw_data(types)[0:]},
+	{"start_drag", "?oo?ou", raw_data(wayland_types)[21:]},
+	{"set_selection", "?ou", raw_data(wayland_types)[25:]},
+	{"release", "2", raw_data(wayland_types)[0:]},
 }
 
 @(private)
 data_device_events := []message {
-	{"data_offer", "n", raw_data(types)[27:]},
-	{"enter", "uoff?o", raw_data(types)[28:]},
-	{"leave", "", raw_data(types)[0:]},
-	{"motion", "uff", raw_data(types)[0:]},
-	{"drop", "", raw_data(types)[0:]},
-	{"selection", "?o", raw_data(types)[33:]},
+	{"data_offer", "n", raw_data(wayland_types)[27:]},
+	{"enter", "uoff?o", raw_data(wayland_types)[28:]},
+	{"leave", "", raw_data(wayland_types)[0:]},
+	{"motion", "uff", raw_data(wayland_types)[0:]},
+	{"drop", "", raw_data(wayland_types)[0:]},
+	{"selection", "?o", raw_data(wayland_types)[33:]},
 }
 
 data_device_interface : interface
@@ -1222,8 +1222,8 @@ data_device_manager_dnd_action :: enum {
 }
 @(private)
 data_device_manager_requests := []message {
-	{"create_data_source", "n", raw_data(types)[34:]},
-	{"get_data_device", "no", raw_data(types)[35:]},
+	{"create_data_source", "n", raw_data(wayland_types)[34:]},
+	{"get_data_device", "no", raw_data(wayland_types)[35:]},
 }
 
 data_device_manager_interface : interface
@@ -1677,25 +1677,25 @@ surface_error :: enum {
 }
 @(private)
 surface_requests := []message {
-	{"destroy", "", raw_data(types)[0:]},
-	{"attach", "?oii", raw_data(types)[37:]},
-	{"damage", "iiii", raw_data(types)[0:]},
-	{"frame", "n", raw_data(types)[40:]},
-	{"set_opaque_region", "?o", raw_data(types)[41:]},
-	{"set_input_region", "?o", raw_data(types)[42:]},
-	{"commit", "", raw_data(types)[0:]},
-	{"set_buffer_transform", "2i", raw_data(types)[0:]},
-	{"set_buffer_scale", "3i", raw_data(types)[0:]},
-	{"damage_buffer", "4iiii", raw_data(types)[0:]},
-	{"offset", "5ii", raw_data(types)[0:]},
+	{"destroy", "", raw_data(wayland_types)[0:]},
+	{"attach", "?oii", raw_data(wayland_types)[37:]},
+	{"damage", "iiii", raw_data(wayland_types)[0:]},
+	{"frame", "n", raw_data(wayland_types)[40:]},
+	{"set_opaque_region", "?o", raw_data(wayland_types)[41:]},
+	{"set_input_region", "?o", raw_data(wayland_types)[42:]},
+	{"commit", "", raw_data(wayland_types)[0:]},
+	{"set_buffer_transform", "2i", raw_data(wayland_types)[0:]},
+	{"set_buffer_scale", "3i", raw_data(wayland_types)[0:]},
+	{"damage_buffer", "4iiii", raw_data(wayland_types)[0:]},
+	{"offset", "5ii", raw_data(wayland_types)[0:]},
 }
 
 @(private)
 surface_events := []message {
-	{"enter", "o", raw_data(types)[43:]},
-	{"leave", "o", raw_data(types)[44:]},
-	{"preferred_buffer_scale", "6i", raw_data(types)[0:]},
-	{"preferred_buffer_transform", "6u", raw_data(types)[0:]},
+	{"enter", "o", raw_data(wayland_types)[43:]},
+	{"leave", "o", raw_data(wayland_types)[44:]},
+	{"preferred_buffer_scale", "6i", raw_data(wayland_types)[0:]},
+	{"preferred_buffer_transform", "6u", raw_data(wayland_types)[0:]},
 }
 
 surface_interface : interface
@@ -1828,16 +1828,16 @@ seat_error :: enum {
 }
 @(private)
 seat_requests := []message {
-	{"get_pointer", "n", raw_data(types)[45:]},
-	{"get_keyboard", "n", raw_data(types)[46:]},
-	{"get_touch", "n", raw_data(types)[47:]},
-	{"release", "5", raw_data(types)[0:]},
+	{"get_pointer", "n", raw_data(wayland_types)[45:]},
+	{"get_keyboard", "n", raw_data(wayland_types)[46:]},
+	{"get_touch", "n", raw_data(wayland_types)[47:]},
+	{"release", "5", raw_data(wayland_types)[0:]},
 }
 
 @(private)
 seat_events := []message {
-	{"capabilities", "u", raw_data(types)[0:]},
-	{"name", "2s", raw_data(types)[0:]},
+	{"capabilities", "u", raw_data(wayland_types)[0:]},
+	{"name", "2s", raw_data(wayland_types)[0:]},
 }
 
 seat_interface : interface
@@ -2186,23 +2186,23 @@ pointer_axis_relative_direction :: enum {
 }
 @(private)
 pointer_requests := []message {
-	{"set_cursor", "u?oii", raw_data(types)[48:]},
-	{"release", "3", raw_data(types)[0:]},
+	{"set_cursor", "u?oii", raw_data(wayland_types)[48:]},
+	{"release", "3", raw_data(wayland_types)[0:]},
 }
 
 @(private)
 pointer_events := []message {
-	{"enter", "uoff", raw_data(types)[52:]},
-	{"leave", "uo", raw_data(types)[56:]},
-	{"motion", "uff", raw_data(types)[0:]},
-	{"button", "uuuu", raw_data(types)[0:]},
-	{"axis", "uuf", raw_data(types)[0:]},
-	{"frame", "5", raw_data(types)[0:]},
-	{"axis_source", "5u", raw_data(types)[0:]},
-	{"axis_stop", "5uu", raw_data(types)[0:]},
-	{"axis_discrete", "5ui", raw_data(types)[0:]},
-	{"axis_value120", "8ui", raw_data(types)[0:]},
-	{"axis_relative_direction", "9uu", raw_data(types)[0:]},
+	{"enter", "uoff", raw_data(wayland_types)[52:]},
+	{"leave", "uo", raw_data(wayland_types)[56:]},
+	{"motion", "uff", raw_data(wayland_types)[0:]},
+	{"button", "uuuu", raw_data(wayland_types)[0:]},
+	{"axis", "uuf", raw_data(wayland_types)[0:]},
+	{"frame", "5", raw_data(wayland_types)[0:]},
+	{"axis_source", "5u", raw_data(wayland_types)[0:]},
+	{"axis_stop", "5uu", raw_data(wayland_types)[0:]},
+	{"axis_discrete", "5ui", raw_data(wayland_types)[0:]},
+	{"axis_value120", "8ui", raw_data(wayland_types)[0:]},
+	{"axis_relative_direction", "9uu", raw_data(wayland_types)[0:]},
 }
 
 pointer_interface : interface
@@ -2354,17 +2354,17 @@ keyboard_key_state :: enum {
 }
 @(private)
 keyboard_requests := []message {
-	{"release", "3", raw_data(types)[0:]},
+	{"release", "3", raw_data(wayland_types)[0:]},
 }
 
 @(private)
 keyboard_events := []message {
-	{"keymap", "uhu", raw_data(types)[0:]},
-	{"enter", "uoa", raw_data(types)[58:]},
-	{"leave", "uo", raw_data(types)[61:]},
-	{"key", "uuuu", raw_data(types)[0:]},
-	{"modifiers", "uuuuu", raw_data(types)[0:]},
-	{"repeat_info", "4ii", raw_data(types)[0:]},
+	{"keymap", "uhu", raw_data(wayland_types)[0:]},
+	{"enter", "uoa", raw_data(wayland_types)[58:]},
+	{"leave", "uo", raw_data(wayland_types)[61:]},
+	{"key", "uuuu", raw_data(wayland_types)[0:]},
+	{"modifiers", "uuuuu", raw_data(wayland_types)[0:]},
+	{"repeat_info", "4ii", raw_data(wayland_types)[0:]},
 }
 
 keyboard_interface : interface
@@ -2489,18 +2489,18 @@ touch_add_listener :: proc "contextless" (touch_: ^touch, listener: ^touch_liste
 }
 @(private)
 touch_requests := []message {
-	{"release", "3", raw_data(types)[0:]},
+	{"release", "3", raw_data(wayland_types)[0:]},
 }
 
 @(private)
 touch_events := []message {
-	{"down", "uuoiff", raw_data(types)[63:]},
-	{"up", "uui", raw_data(types)[0:]},
-	{"motion", "uiff", raw_data(types)[0:]},
-	{"frame", "", raw_data(types)[0:]},
-	{"cancel", "", raw_data(types)[0:]},
-	{"shape", "6iff", raw_data(types)[0:]},
-	{"orientation", "6if", raw_data(types)[0:]},
+	{"down", "uuoiff", raw_data(wayland_types)[63:]},
+	{"up", "uui", raw_data(wayland_types)[0:]},
+	{"motion", "uiff", raw_data(wayland_types)[0:]},
+	{"frame", "", raw_data(wayland_types)[0:]},
+	{"cancel", "", raw_data(wayland_types)[0:]},
+	{"shape", "6iff", raw_data(wayland_types)[0:]},
+	{"orientation", "6if", raw_data(wayland_types)[0:]},
 }
 
 touch_interface : interface
@@ -2704,17 +2704,17 @@ output_mode :: enum {
 }
 @(private)
 output_requests := []message {
-	{"release", "3", raw_data(types)[0:]},
+	{"release", "3", raw_data(wayland_types)[0:]},
 }
 
 @(private)
 output_events := []message {
-	{"geometry", "iiiiissi", raw_data(types)[0:]},
-	{"mode", "uiii", raw_data(types)[0:]},
-	{"done", "2", raw_data(types)[0:]},
-	{"scale", "2i", raw_data(types)[0:]},
-	{"name", "4s", raw_data(types)[0:]},
-	{"description", "4s", raw_data(types)[0:]},
+	{"geometry", "iiiiissi", raw_data(wayland_types)[0:]},
+	{"mode", "uiii", raw_data(wayland_types)[0:]},
+	{"done", "2", raw_data(wayland_types)[0:]},
+	{"scale", "2i", raw_data(wayland_types)[0:]},
+	{"name", "4s", raw_data(wayland_types)[0:]},
+	{"description", "4s", raw_data(wayland_types)[0:]},
 }
 
 output_interface : interface
@@ -2752,9 +2752,9 @@ region_subtract :: proc "contextless" (region_: ^region, x_: int, y_: int, width
 
 @(private)
 region_requests := []message {
-	{"destroy", "", raw_data(types)[0:]},
-	{"add", "iiii", raw_data(types)[0:]},
-	{"subtract", "iiii", raw_data(types)[0:]},
+	{"destroy", "", raw_data(wayland_types)[0:]},
+	{"add", "iiii", raw_data(wayland_types)[0:]},
+	{"subtract", "iiii", raw_data(wayland_types)[0:]},
 }
 
 region_interface : interface
@@ -2827,8 +2827,8 @@ subcompositor_error :: enum {
 }
 @(private)
 subcompositor_requests := []message {
-	{"destroy", "", raw_data(types)[0:]},
-	{"get_subsurface", "noo", raw_data(types)[69:]},
+	{"destroy", "", raw_data(wayland_types)[0:]},
+	{"get_subsurface", "noo", raw_data(wayland_types)[69:]},
 }
 
 subcompositor_interface : interface
@@ -2995,12 +2995,12 @@ subsurface_error :: enum {
 }
 @(private)
 subsurface_requests := []message {
-	{"destroy", "", raw_data(types)[0:]},
-	{"set_position", "ii", raw_data(types)[0:]},
-	{"place_above", "o", raw_data(types)[72:]},
-	{"place_below", "o", raw_data(types)[73:]},
-	{"set_sync", "", raw_data(types)[0:]},
-	{"set_desync", "", raw_data(types)[0:]},
+	{"destroy", "", raw_data(wayland_types)[0:]},
+	{"set_position", "ii", raw_data(wayland_types)[0:]},
+	{"place_above", "o", raw_data(wayland_types)[72:]},
+	{"place_below", "o", raw_data(wayland_types)[73:]},
+	{"set_sync", "", raw_data(wayland_types)[0:]},
+	{"set_desync", "", raw_data(wayland_types)[0:]},
 }
 
 subsurface_interface : interface
@@ -3038,15 +3038,15 @@ fixes_destroy_registry :: proc "contextless" (fixes_: ^fixes, registry_: ^regist
 
 @(private)
 fixes_requests := []message {
-	{"destroy", "", raw_data(types)[0:]},
-	{"destroy_registry", "o", raw_data(types)[74:]},
+	{"destroy", "", raw_data(wayland_types)[0:]},
+	{"destroy_registry", "o", raw_data(wayland_types)[74:]},
 }
 
 fixes_interface : interface
 
 @(private)
 @(init)
-init_interfaces :: proc() {
+init_interfaces_wayland :: proc() {
 	display_interface.name = "wl_display"
 	display_interface.version = 1
 	display_interface.method_count = 2
@@ -3166,7 +3166,6 @@ init_interfaces :: proc() {
 	fixes_interface.event_count = 0
 	fixes_interface.methods = raw_data(fixes_requests)
 }
-import "core:mem"
 
 // Functions from libwayland-client
 import "core:c"
@@ -3195,9 +3194,7 @@ foreign wl_lib {
    display_set_max_buffer_size               :: proc(display: ^display, max_buffer_size: c.size_t) ---
 
    proxy_marshal_flags                       :: proc(p: ^proxy, opcode: uint, intf: ^interface, version: uint, flags: uint, #c_vararg args: ..any) -> ^proxy ---
-   proxy_marshal_array_flags                 :: proc(p: ^proxy, opcode: uint, intf: ^interface, version: uint, flags: uint, args: ^argument) -> ^proxy ---
    proxy_marshal                             :: proc(p: ^proxy, opcode: uint, #c_vararg args: ..any) ---
-   proxy_marshal_array                       :: proc(p: ^proxy, opcode: uint, args: ^argument) ---
    proxy_create                              :: proc(factory: ^proxy, intf: ^interface) -> ^proxy ---
    proxy_create_wrapper                      :: proc(proxy: rawptr) -> rawptr ---
    proxy_wrapper_destroy                     :: proc(proxy_wrapper: rawptr) ---

@@ -1,5 +1,5 @@
 #+build linux
-package xdg_shell
+package xdg
 @(private)
 xdg_shell_types := []^interface {
 	nil,

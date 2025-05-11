@@ -219,13 +219,13 @@ get_procedure_signature :: proc(procedure: Procedure) -> string {
 
    return strings.to_string(sb)
 }
-get_procedures_text :: proc(procedures: []Procedure, var_name: string) -> string {
+get_procedures_text :: proc(procedures: []Procedure, var_name: string, protocol_name: string) -> string {
    sb: strings.Builder
    fmt.sbprintln(&sb, "@(private)")
    fmt.sbprintfln(&sb, "%v := []message {{", var_name)
    for procedure in procedures {
       fmt.sbprint(&sb,"\t{")
-      fmt.sbprintf(&sb, `"%v", "%v", raw_data(types)[%v:]`, procedure.name, get_procedure_signature(procedure), procedure.type_index)
+      fmt.sbprintf(&sb, `"%v", "%v", raw_data(%v_types)[%v:]`, procedure.name, get_procedure_signature(procedure), protocol_name, procedure.type_index)
       fmt.sbprintln(&sb, "},")
    }
    fmt.sbprintln(&sb, "}")
@@ -327,10 +327,21 @@ parse_file :: proc(filename: string) -> Protocol {
          enumeration.entries = entries[:]
          append(&enums, enumeration)
       }
+
       interface.requests = requests[:]
       interface.events = events[:]
       interface.enums = enums[:]
       append(&interfaces, interface)
+   }
+   for interface in interfaces {
+      for &request in interface.requests {
+         for other in interfaces {
+            if other.name == fmt.aprintf("%v_%v", interface.name, request.name)  {
+               // Odin, unlike c, doesn't allow a procedure and a struct to have the same name
+               request.name = fmt.aprintf("get_%v", request.name)
+            }
+         }
+      }
    }
    protocol.interfaces = interfaces[:]
    return protocol
@@ -341,7 +352,7 @@ generate_code :: proc(protocol: Protocol, package_name: string, emit_libwayland:
    strings.write_string(&sb, "#+build linux\n")
    fmt.sbprintln(&sb,"package",package_name)
    fmt.sbprintln(&sb, "@(private)")
-   fmt.sbprintln(&sb, "types := []^interface {")
+   fmt.sbprintfln(&sb, "%v_types := []^interface {{",protocol.name)
    for i in 0..<protocol.null_run_length {
       fmt.sbprintln(&sb, "\tnil,")
    }
@@ -439,16 +450,14 @@ generate_code :: proc(protocol: Protocol, package_name: string, emit_libwayland:
             fmt.sbprintln(&sb, "}")
          }
 
-         requests_name := "nil"
-         events_name := "nil"
          if len(interface.requests) > 0 {
-            requests_name = fmt.aprintf("%v_requests", interface.name)
-            fmt.sbprintln(&sb, get_procedures_text(interface.requests, requests_name))
+            requests_name := fmt.aprintf("%v_requests", interface.name)
+            fmt.sbprintln(&sb, get_procedures_text(interface.requests, requests_name, protocol.name))
          }
 
          if len(interface.events) > 0 {
-            events_name = fmt.aprintf("%v_events", interface.name)
-            fmt.sbprintln(&sb, get_procedures_text(interface.events, events_name))
+            events_name := fmt.aprintf("%v_events", interface.name)
+            fmt.sbprintln(&sb, get_procedures_text(interface.events, events_name, protocol.name))
          }
 
          fmt.sbprintfln(&sb,"%v_interface : interface\n", interface.name)
@@ -456,7 +465,7 @@ generate_code :: proc(protocol: Protocol, package_name: string, emit_libwayland:
 
    fmt.sbprintln(&sb, "@(private)")
    fmt.sbprintln(&sb, "@(init)")
-   fmt.sbprintln(&sb, "init_interfaces :: proc() {")
+   fmt.sbprintfln(&sb, "init_interfaces_%v :: proc() {{", protocol.name)
    for interface in protocol.interfaces {
       request_count := len(interface.requests)
       event_count := len(interface.events)
@@ -473,14 +482,13 @@ generate_code :: proc(protocol: Protocol, package_name: string, emit_libwayland:
       }
    }
    fmt.sbprintln(&sb, "}")
-   if emit_libwayland {
-      fmt.sbprintln(&sb, "\n// Functions from libwayland-client")
-      if protocol.name == "wayland" {
-         fmt.sbprintln(&sb, `import "core:c"`)
-         fmt.sbprintln(&sb,`foreign import wl_lib "system:wayland-client"`)
+   fmt.sbprintln(&sb, "\n// Functions from libwayland-client")
+   if protocol.name == "wayland" {
+      fmt.sbprintln(&sb, `import "core:c"`)
+      fmt.sbprintln(&sb,`foreign import wl_lib "system:wayland-client"`)
 
-         strings.write_string(&sb,
-   `@(default_calling_convention="c")
+      strings.write_string(&sb,
+`@(default_calling_convention="c")
 @(link_prefix="wl_")
 foreign wl_lib {
    display_connect                           :: proc(name: cstring) -> ^display ---
@@ -525,9 +533,10 @@ foreign wl_lib {
    proxy_get_class                           :: proc(p: ^proxy) -> ^u8 ---
    proxy_set_queue                           :: proc(p: ^proxy, queue: ^event_queue) ---
 }`)
-      }
-      else {
-         fmt.sbprintln(&sb, `import wl "shared:libwayland"`)
+   }
+   else {
+      fmt.sbprintln(&sb, `import wl "shared:wayland"`)
+      if emit_libwayland {
          add_wl_name(&sb, "fixed_t")
          add_wl_name(&sb, "proxy")
          add_wl_name(&sb, "message")

@@ -336,7 +336,7 @@ parse_file :: proc(filename: string) -> Protocol {
    return protocol
 }
 
-generate_code :: proc(protocol: Protocol, package_name: string) -> string {
+generate_code :: proc(protocol: Protocol, package_name: string, emit_libwayland: bool) -> string {
    sb: strings.Builder
    strings.write_string(&sb, "#+build linux\n")
    fmt.sbprintln(&sb,"package",package_name)
@@ -346,8 +346,8 @@ generate_code :: proc(protocol: Protocol, package_name: string) -> string {
       fmt.sbprintln(&sb, "\tnil,")
    }
    for interface in protocol.interfaces {
-      get_types_text(&sb, interface.requests, protocol)
-      get_types_text(&sb, interface.events, protocol)
+      generate_types(&sb, interface.requests, protocol)
+      generate_types(&sb, interface.events, protocol)
    }
    fmt.sbprintln(&sb, "}")
 
@@ -473,14 +473,14 @@ generate_code :: proc(protocol: Protocol, package_name: string) -> string {
       }
    }
    fmt.sbprintln(&sb, "}")
-   fmt.sbprintln(&sb, `import "core:mem"`)
-   fmt.sbprintln(&sb, "\n// Functions from libwayland-client")
-   if protocol.name == "wayland" {
-      fmt.sbprintln(&sb, `import "core:c"`)
-      fmt.sbprintln(&sb,`foreign import wl_lib "system:wayland-client"`)
+   if emit_libwayland {
+      fmt.sbprintln(&sb, "\n// Functions from libwayland-client")
+      if protocol.name == "wayland" {
+         fmt.sbprintln(&sb, `import "core:c"`)
+         fmt.sbprintln(&sb,`foreign import wl_lib "system:wayland-client"`)
 
-      strings.write_string(&sb,
-`@(default_calling_convention="c")
+         strings.write_string(&sb,
+   `@(default_calling_convention="c")
 @(link_prefix="wl_")
 foreign wl_lib {
    display_connect                           :: proc(name: cstring) -> ^display ---
@@ -504,9 +504,7 @@ foreign wl_lib {
    display_set_max_buffer_size               :: proc(display: ^display, max_buffer_size: c.size_t) ---
 
    proxy_marshal_flags                       :: proc(p: ^proxy, opcode: uint, intf: ^interface, version: uint, flags: uint, #c_vararg args: ..any) -> ^proxy ---
-   proxy_marshal_array_flags                 :: proc(p: ^proxy, opcode: uint, intf: ^interface, version: uint, flags: uint, args: ^argument) -> ^proxy ---
    proxy_marshal                             :: proc(p: ^proxy, opcode: uint, #c_vararg args: ..any) ---
-   proxy_marshal_array                       :: proc(p: ^proxy, opcode: uint, args: ^argument) ---
    proxy_create                              :: proc(factory: ^proxy, intf: ^interface) -> ^proxy ---
    proxy_create_wrapper                      :: proc(proxy: rawptr) -> rawptr ---
    proxy_wrapper_destroy                     :: proc(proxy_wrapper: rawptr) ---
@@ -527,32 +525,32 @@ foreign wl_lib {
    proxy_get_class                           :: proc(p: ^proxy) -> ^u8 ---
    proxy_set_queue                           :: proc(p: ^proxy, queue: ^event_queue) ---
 }`)
+      }
+      else {
+         fmt.sbprintln(&sb, `import wl "shared:libwayland"`)
+         add_wl_name(&sb, "fixed_t")
+         add_wl_name(&sb, "proxy")
+         add_wl_name(&sb, "message")
+         add_wl_name(&sb, "interface")
+         add_wl_name(&sb, "array")
+         add_wl_name(&sb, "generic_c_call")
+         add_wl_name(&sb, "proxy_add_listener")
+         add_wl_name(&sb, "proxy_get_listener")
+         add_wl_name(&sb, "proxy_get_user_data")
+         add_wl_name(&sb, "proxy_set_user_data")
+         add_wl_name(&sb, "proxy_get_version")
+         add_wl_name(&sb, "proxy_marshal")
+         add_wl_name(&sb, "proxy_marshal_array")
+         add_wl_name(&sb, "proxy_marshal_flags")
+         add_wl_name(&sb, "proxy_marshal_array_flags")
+         add_wl_name(&sb, "proxy_marshal_constructor")
+         add_wl_name(&sb, "proxy_destroy")
+      }
    }
-   else {
-      fmt.sbprintln(&sb, `import wl "../"`)
-      add_wl_name(&sb, "fixed_t")
-      add_wl_name(&sb, "proxy")
-      add_wl_name(&sb, "message")
-      add_wl_name(&sb, "interface")
-      add_wl_name(&sb, "array")
-      add_wl_name(&sb, "generic_c_call")
-      add_wl_name(&sb, "proxy_add_listener")
-      add_wl_name(&sb, "proxy_get_listener")
-      add_wl_name(&sb, "proxy_get_user_data")
-      add_wl_name(&sb, "proxy_set_user_data")
-      add_wl_name(&sb, "proxy_get_version")
-      add_wl_name(&sb, "proxy_marshal")
-      add_wl_name(&sb, "proxy_marshal_array")
-      add_wl_name(&sb, "proxy_marshal_flags")
-      add_wl_name(&sb, "proxy_marshal_array_flags")
-      add_wl_name(&sb, "proxy_marshal_constructor")
-      add_wl_name(&sb, "proxy_destroy")
-   }
-
    return strings.to_string(sb)
 }
 type_index := 0
-get_types_text :: proc(sb: ^strings.Builder, procedures: []Procedure, protocol: Protocol) {
+generate_types :: proc(sb: ^strings.Builder, procedures: []Procedure, protocol: Protocol) {
    for &procedure in procedures {
       if procedure.all_null {
          procedure.type_index = 0
@@ -585,6 +583,7 @@ main :: proc() {
       output: string `args:"pos=1" usage:"Odin output path."`,
       package_name: string `args:"pos=2" usage:"Package name for output code"`,
 		verbose: bool `args:"pos=3" usage:"Show verbose output."`,
+      dont_emit_libwayland: bool `args:"pos=4" usage:"Do not include libwayland procedures in the output code."`,
    }
    style := flags.Parsing_Style.Odin
    flags.parse_or_exit(&options, os.args, style)
@@ -601,7 +600,7 @@ main :: proc() {
    fmt.println("Outputting to:", output_filename)
 
    package_name := options.package_name if options.package_name != "" else protocol.name
-   code := generate_code(protocol, package_name)
+   code := generate_code(protocol, package_name, !options.dont_emit_libwayland)
    if !os.write_entire_file(output_filename, transmute([]u8)code) {
       fmt.println("There was an error outputting to the file:", os.get_last_error())
       return

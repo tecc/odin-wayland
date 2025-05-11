@@ -19,6 +19,9 @@ window : struct {
 }
 global_context: runtime.Context
 
+buffer_release :: proc "c" (data: rawptr, buffer: ^wl.buffer) {
+	wl.buffer_destroy(buffer)
+}
 create_frame_buffer :: proc() -> ^wl.buffer {
    context = global_context
    width := 800
@@ -91,6 +94,19 @@ registry_global :: proc "c" (data: rawptr, registry: ^wl.registry, name: uint, i
 registry_global_remove :: proc "c" (data: rawptr, registry: ^wl.registry, name: uint) {
 
 }
+buffer_listener := wl.buffer_listener {
+	release = buffer_release
+}
+registry_listener := wl.registry_listener {
+   global = registry_global,
+   global_remove = registry_global_remove,
+}
+surface_listener := xdg.surface_listener {
+   configure = surface_configure
+}
+wm_base_listener := xdg.wm_base_listener {
+   ping = wm_base_ping
+}
 main :: proc() {
    global_context = context
    window.display = wl.display_connect(nil)
@@ -102,18 +118,6 @@ main :: proc() {
       return
    }
    registry := wl.display_get_registry(window.display)
-
-   registry_listener := wl.registry_listener {
-      global = registry_global,
-      global_remove = registry_global_remove,
-   }
-   surface_listener := xdg.surface_listener {
-      configure = surface_configure
-   }
-   wm_base_listener := xdg.wm_base_listener {
-      ping = wm_base_ping
-   }
-
    wl.registry_add_listener(registry, &registry_listener, nil)
    wl.display_roundtrip(window.display)
    window.surface = wl.compositor_create_surface(window.compositor)
@@ -124,7 +128,5 @@ main :: proc() {
    xdg.toplevel_set_title(window.toplevel, "Hellope From Odin!")
    wl.surface_commit(window.surface)
    for wl.display_dispatch(window.display) != 0 {
-
    }
-   //wl.registry_destroy(registry)
 }

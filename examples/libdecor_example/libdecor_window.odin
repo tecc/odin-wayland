@@ -1,4 +1,4 @@
-package libdecor_window
+package libdecor_example
 import wl "shared:wayland"
 import "shared:wayland/xdg"
 import "shared:wayland/ext/libdecor"
@@ -17,7 +17,6 @@ window : struct {
    window_state: libdecor.window_state,
    frame: ^libdecor.frame,
    width, height, floating_width, floating_height : int,
-
 }
 global_context: runtime.Context
 
@@ -90,7 +89,6 @@ interface_error :: proc "c" (instance: ^libdecor.instance, error: libdecor.error
 	context = global_context
 	fmt.printfln("libdecor error(%v):%v", error, message)
 	os.exit(1)
-
 }
 
 frame_configure :: proc "c" (frame: ^libdecor.frame, configuration: ^libdecor.configuration, user_data: rawptr) {
@@ -99,7 +97,6 @@ frame_configure :: proc "c" (frame: ^libdecor.frame, configuration: ^libdecor.co
 	height := 0
 	state: ^libdecor.state
 	if !libdecor.configuration_get_window_state(configuration, &window.window_state) {
-		fmt.println("Previous state:", window.window_state)
 		window.window_state = {}
 	}
 	libdecor.configuration_get_content_size(configuration, frame, &width, &height)
@@ -153,25 +150,25 @@ main :: proc() {
 	window = { width = 800, floating_width = 800, height = 600, floating_height = 600 }
 	window.display = wl.display_connect(nil)
 	if window.display != nil {
-	fmt.println("Successfully connected to a wayland display.")
+		fmt.println("Successfully connected to a wayland display.")
 	}
 	else {
-	fmt.println("Failed to connect to a wayland display")
-	return
+		fmt.println("Failed to connect to a wayland display")
+		return
 	}
 	registry := wl.display_get_registry(window.display)
 	wl.registry_add_listener(registry, &registry_listener, nil)
 	wl.display_roundtrip(window.display)
 	window.surface = wl.compositor_create_surface(window.compositor)
 	window.instance = libdecor.new(window.display, &iface)
-	
+
 	// libdecor.set_handle_application_cursor(window.instance, true)
 	window.frame = libdecor.decorate(window.instance, window.surface, &frame_iface,nil)
 	libdecor.frame_set_app_id(window.frame, "odin-libdecor-window")
 	libdecor.frame_set_title(window.frame, "Hellope from libdecor!")
-	
+
 	libdecor.frame_map(window.frame)
-	
+
 	for libdecor.dispatch(window.instance, -1) >= 0 {
 	}
 

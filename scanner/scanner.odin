@@ -347,7 +347,7 @@ parse_file :: proc(filename: string) -> Protocol {
    return protocol
 }
 
-generate_code :: proc(protocol: Protocol, package_name: string, emit_libwayland: bool) -> string {
+generate_code :: proc(protocol: Protocol, package_name: string, wl_import: string, emit_libwayland: bool) -> string {
    sb: strings.Builder
    strings.write_string(&sb, "#+build linux\n")
    fmt.sbprintln(&sb,"package",package_name)
@@ -380,10 +380,12 @@ generate_code :: proc(protocol: Protocol, package_name: string, emit_libwayland:
          for request in interface.requests {
             has_ret := request.ret != nil
             has_new_id := request.new_id != nil
-            fmt.sbprintln(&sb, "/*", request.description, "*/")
+
+            fmt.sbprintfln(&sb, "/* Opcode for `%v_%v`. */", interface.name, request.name)
             opcode_name := fmt.aprintf("%v_%v", strings.to_upper(interface.name), strings.to_upper(request.name))
             fmt.sbprintfln(&sb,"%v :: %v",opcode_name, opcode)
 
+            fmt.sbprintln(&sb, "/*", request.description, "*/")
             fmt.sbprintf(&sb, `%[0]v_%[1]v :: proc "contextless" (%[0]v_: ^%[0]v`, interface.name, request.name)
             for arg in request.args do fmt.sbprintf(&sb, ", %v", get_argument_text(arg))
             fmt.sbprint(&sb, ") ")
@@ -535,7 +537,7 @@ foreign wl_lib {
 }`)
    }
    else {
-      fmt.sbprintln(&sb, `import wl "shared:wayland"`)
+      fmt.sbprintfln(&sb, `import wl "%v"`, wl_import)
       if emit_libwayland {
          add_wl_name(&sb, "fixed_t")
          add_wl_name(&sb, "proxy")
@@ -589,8 +591,9 @@ main :: proc() {
       input: string `args:"pos=0,required" usage:"Wayland xml protocol path."`,
       output: string `args:"pos=1" usage:"Odin output path."`,
       package_name: string `args:"pos=2" usage:"Package name for output code"`,
-		verbose: bool `args:"pos=3" usage:"Show verbose output."`,
+      verbose: bool `args:"pos=3" usage:"Show verbose output."`,
       dont_emit_libwayland: bool `args:"pos=4" usage:"Do not include libwayland procedures in the output code."`,
+      wl_import: string `usage:"How to refer to the base 'wayland' package."`
    }
    style := flags.Parsing_Style.Odin
    flags.parse_or_exit(&options, os.args, style)
@@ -606,8 +609,13 @@ main :: proc() {
 
    fmt.println("Outputting to:", output_filename)
 
+   wl_import := "shared:wayland"
+   if options.wl_import != "" {
+      wl_import = options.wl_import
+   }
+
    package_name := options.package_name if options.package_name != "" else protocol.name
-   code := generate_code(protocol, package_name, !options.dont_emit_libwayland)
+   code := generate_code(protocol, package_name, wl_import, !options.dont_emit_libwayland)
    if !os.write_entire_file(output_filename, transmute([]u8)code) {
       fmt.println("There was an error outputting to the file:", os.get_last_error())
       return

@@ -39,17 +39,19 @@ tablet_manager_v2_get_user_data :: proc "contextless" (tablet_manager_v2_: ^tabl
    return proxy_get_user_data(cast(^proxy)tablet_manager_v2_)
 }
 
+/* Opcode for `tablet_manager_v2_get_tablet_seat`. */
+TABLET_MANAGER_V2_GET_TABLET_SEAT :: 0
 /* Get the wp_tablet_seat object for the given seat. This object
 	provides access to all graphics tablets in this seat. */
-TABLET_MANAGER_V2_GET_TABLET_SEAT :: 0
 tablet_manager_v2_get_tablet_seat :: proc "contextless" (tablet_manager_v2_: ^tablet_manager_v2, seat_: ^wl.seat) -> ^tablet_seat_v2 {
 	ret := proxy_marshal_flags(cast(^proxy)tablet_manager_v2_, TABLET_MANAGER_V2_GET_TABLET_SEAT, &tablet_seat_v2_interface, proxy_get_version(cast(^proxy)tablet_manager_v2_), 0, nil, seat_)
 	return cast(^tablet_seat_v2)ret
 }
 
+/* Opcode for `tablet_manager_v2_destroy`. */
+TABLET_MANAGER_V2_DESTROY :: 1
 /* Destroy the wp_tablet_manager object. Objects created from this
 	object are unaffected and should be destroyed separately. */
-TABLET_MANAGER_V2_DESTROY :: 1
 tablet_manager_v2_destroy :: proc "contextless" (tablet_manager_v2_: ^tablet_manager_v2) {
 	proxy_marshal_flags(cast(^proxy)tablet_manager_v2_, TABLET_MANAGER_V2_DESTROY, nil, proxy_get_version(cast(^proxy)tablet_manager_v2_), 1)
 }
@@ -74,9 +76,10 @@ tablet_seat_v2_get_user_data :: proc "contextless" (tablet_seat_v2_: ^tablet_sea
    return proxy_get_user_data(cast(^proxy)tablet_seat_v2_)
 }
 
+/* Opcode for `tablet_seat_v2_destroy`. */
+TABLET_SEAT_V2_DESTROY :: 0
 /* Destroy the wp_tablet_seat object. Objects created from this
 	object are unaffected and should be destroyed separately. */
-TABLET_SEAT_V2_DESTROY :: 0
 tablet_seat_v2_destroy :: proc "contextless" (tablet_seat_v2_: ^tablet_seat_v2) {
 	proxy_marshal_flags(cast(^proxy)tablet_seat_v2_, TABLET_SEAT_V2_DESTROY, nil, proxy_get_version(cast(^proxy)tablet_seat_v2_), 1)
 }
@@ -153,6 +156,8 @@ tablet_tool_v2_get_user_data :: proc "contextless" (tablet_tool_v2_: ^tablet_too
    return proxy_get_user_data(cast(^proxy)tablet_tool_v2_)
 }
 
+/* Opcode for `tablet_tool_v2_set_cursor`. */
+TABLET_TOOL_V2_SET_CURSOR :: 0
 /* Sets the surface of the cursor used for this tool on the given
 	tablet. This request only takes effect if the tool is in proximity
 	of one of the requesting client's surfaces or the surface parameter
@@ -183,13 +188,13 @@ tablet_tool_v2_get_user_data :: proc "contextless" (tablet_tool_v2_: ^tablet_too
 	wp_tablet_tool. If the surface already has another role or has
 	previously been used as cursor surface for a different tool, a
 	protocol error is raised. */
-TABLET_TOOL_V2_SET_CURSOR :: 0
 tablet_tool_v2_set_cursor :: proc "contextless" (tablet_tool_v2_: ^tablet_tool_v2, serial_: uint, surface_: ^wl.surface, hotspot_x_: int, hotspot_y_: int) {
 	proxy_marshal_flags(cast(^proxy)tablet_tool_v2_, TABLET_TOOL_V2_SET_CURSOR, nil, proxy_get_version(cast(^proxy)tablet_tool_v2_), 0, serial_, surface_, hotspot_x_, hotspot_y_)
 }
 
-/* This destroys the client's resource for this tool object. */
+/* Opcode for `tablet_tool_v2_destroy`. */
 TABLET_TOOL_V2_DESTROY :: 1
+/* This destroys the client's resource for this tool object. */
 tablet_tool_v2_destroy :: proc "contextless" (tablet_tool_v2_: ^tablet_tool_v2) {
 	proxy_marshal_flags(cast(^proxy)tablet_tool_v2_, TABLET_TOOL_V2_DESTROY, nil, proxy_get_version(cast(^proxy)tablet_tool_v2_), 1)
 }
@@ -473,8 +478,9 @@ tablet_v2_get_user_data :: proc "contextless" (tablet_v2_: ^tablet_v2) -> rawptr
    return proxy_get_user_data(cast(^proxy)tablet_v2_)
 }
 
-/* This destroys the client's resource for this tablet object. */
+/* Opcode for `tablet_v2_destroy`. */
 TABLET_V2_DESTROY :: 0
+/* This destroys the client's resource for this tablet object. */
 tablet_v2_destroy :: proc "contextless" (tablet_v2_: ^tablet_v2) {
 	proxy_marshal_flags(cast(^proxy)tablet_v2_, TABLET_V2_DESTROY, nil, proxy_get_version(cast(^proxy)tablet_v2_), 1)
 }
@@ -584,6 +590,8 @@ tablet_pad_ring_v2_get_user_data :: proc "contextless" (tablet_pad_ring_v2_: ^ta
    return proxy_get_user_data(cast(^proxy)tablet_pad_ring_v2_)
 }
 
+/* Opcode for `tablet_pad_ring_v2_set_feedback`. */
+TABLET_PAD_RING_V2_SET_FEEDBACK :: 0
 /* Request that the compositor use the provided feedback string
 	associated with this ring. This request should be issued immediately
 	after a wp_tablet_pad_group.mode_switch event from the corresponding
@@ -603,13 +611,13 @@ tablet_pad_ring_v2_get_user_data :: proc "contextless" (tablet_pad_ring_v2_: ^ta
 	wp_tablet_pad_group.mode_switch event received for the group of this
 	ring. Requests providing other serials than the most recent one will be
 	ignored. */
-TABLET_PAD_RING_V2_SET_FEEDBACK :: 0
 tablet_pad_ring_v2_set_feedback :: proc "contextless" (tablet_pad_ring_v2_: ^tablet_pad_ring_v2, description_: cstring, serial_: uint) {
 	proxy_marshal_flags(cast(^proxy)tablet_pad_ring_v2_, TABLET_PAD_RING_V2_SET_FEEDBACK, nil, proxy_get_version(cast(^proxy)tablet_pad_ring_v2_), 0, description_, serial_)
 }
 
-/* This destroys the client's resource for this ring object. */
+/* Opcode for `tablet_pad_ring_v2_destroy`. */
 TABLET_PAD_RING_V2_DESTROY :: 1
+/* This destroys the client's resource for this ring object. */
 tablet_pad_ring_v2_destroy :: proc "contextless" (tablet_pad_ring_v2_: ^tablet_pad_ring_v2) {
 	proxy_marshal_flags(cast(^proxy)tablet_pad_ring_v2_, TABLET_PAD_RING_V2_DESTROY, nil, proxy_get_version(cast(^proxy)tablet_pad_ring_v2_), 1)
 }
@@ -703,6 +711,8 @@ tablet_pad_strip_v2_get_user_data :: proc "contextless" (tablet_pad_strip_v2_: ^
    return proxy_get_user_data(cast(^proxy)tablet_pad_strip_v2_)
 }
 
+/* Opcode for `tablet_pad_strip_v2_set_feedback`. */
+TABLET_PAD_STRIP_V2_SET_FEEDBACK :: 0
 /* Requests the compositor to use the provided feedback string
 	associated with this strip. This request should be issued immediately
 	after a wp_tablet_pad_group.mode_switch event from the corresponding
@@ -722,13 +732,13 @@ tablet_pad_strip_v2_get_user_data :: proc "contextless" (tablet_pad_strip_v2_: ^
 	wp_tablet_pad_group.mode_switch event received for the group of this
 	strip. Requests providing other serials than the most recent one will be
 	ignored. */
-TABLET_PAD_STRIP_V2_SET_FEEDBACK :: 0
 tablet_pad_strip_v2_set_feedback :: proc "contextless" (tablet_pad_strip_v2_: ^tablet_pad_strip_v2, description_: cstring, serial_: uint) {
 	proxy_marshal_flags(cast(^proxy)tablet_pad_strip_v2_, TABLET_PAD_STRIP_V2_SET_FEEDBACK, nil, proxy_get_version(cast(^proxy)tablet_pad_strip_v2_), 0, description_, serial_)
 }
 
-/* This destroys the client's resource for this strip object. */
+/* Opcode for `tablet_pad_strip_v2_destroy`. */
 TABLET_PAD_STRIP_V2_DESTROY :: 1
+/* This destroys the client's resource for this strip object. */
 tablet_pad_strip_v2_destroy :: proc "contextless" (tablet_pad_strip_v2_: ^tablet_pad_strip_v2) {
 	proxy_marshal_flags(cast(^proxy)tablet_pad_strip_v2_, TABLET_PAD_STRIP_V2_DESTROY, nil, proxy_get_version(cast(^proxy)tablet_pad_strip_v2_), 1)
 }
@@ -840,9 +850,10 @@ tablet_pad_group_v2_get_user_data :: proc "contextless" (tablet_pad_group_v2_: ^
    return proxy_get_user_data(cast(^proxy)tablet_pad_group_v2_)
 }
 
+/* Opcode for `tablet_pad_group_v2_destroy`. */
+TABLET_PAD_GROUP_V2_DESTROY :: 0
 /* Destroy the wp_tablet_pad_group object. Objects created from this object
 	are unaffected and should be destroyed separately. */
-TABLET_PAD_GROUP_V2_DESTROY :: 0
 tablet_pad_group_v2_destroy :: proc "contextless" (tablet_pad_group_v2_: ^tablet_pad_group_v2) {
 	proxy_marshal_flags(cast(^proxy)tablet_pad_group_v2_, TABLET_PAD_GROUP_V2_DESTROY, nil, proxy_get_version(cast(^proxy)tablet_pad_group_v2_), 1)
 }
@@ -985,6 +996,8 @@ tablet_pad_v2_get_user_data :: proc "contextless" (tablet_pad_v2_: ^tablet_pad_v
    return proxy_get_user_data(cast(^proxy)tablet_pad_v2_)
 }
 
+/* Opcode for `tablet_pad_v2_set_feedback`. */
+TABLET_PAD_V2_SET_FEEDBACK :: 0
 /* Requests the compositor to use the provided feedback string
 	associated with this button. This request should be issued immediately
 	after a wp_tablet_pad_group.mode_switch event from the corresponding
@@ -1009,14 +1022,14 @@ tablet_pad_v2_get_user_data :: proc "contextless" (tablet_pad_v2_: ^tablet_pad_v
 	wp_tablet_pad_group.mode_switch event received for the group of this
 	button. Requests providing other serials than the most recent one will
 	be ignored. */
-TABLET_PAD_V2_SET_FEEDBACK :: 0
 tablet_pad_v2_set_feedback :: proc "contextless" (tablet_pad_v2_: ^tablet_pad_v2, button_: uint, description_: cstring, serial_: uint) {
 	proxy_marshal_flags(cast(^proxy)tablet_pad_v2_, TABLET_PAD_V2_SET_FEEDBACK, nil, proxy_get_version(cast(^proxy)tablet_pad_v2_), 0, button_, description_, serial_)
 }
 
+/* Opcode for `tablet_pad_v2_destroy`. */
+TABLET_PAD_V2_DESTROY :: 1
 /* Destroy the wp_tablet_pad object. Objects created from this object
 	are unaffected and should be destroyed separately. */
-TABLET_PAD_V2_DESTROY :: 1
 tablet_pad_v2_destroy :: proc "contextless" (tablet_pad_v2_: ^tablet_pad_v2) {
 	proxy_marshal_flags(cast(^proxy)tablet_pad_v2_, TABLET_PAD_V2_DESTROY, nil, proxy_get_version(cast(^proxy)tablet_pad_v2_), 1)
 }
@@ -1115,6 +1128,8 @@ tablet_pad_dial_v2_get_user_data :: proc "contextless" (tablet_pad_dial_v2_: ^ta
    return proxy_get_user_data(cast(^proxy)tablet_pad_dial_v2_)
 }
 
+/* Opcode for `tablet_pad_dial_v2_set_feedback`. */
+TABLET_PAD_DIAL_V2_SET_FEEDBACK :: 0
 /* Requests the compositor to use the provided feedback string
 	associated with this dial. This request should be issued immediately
 	after a wp_tablet_pad_group.mode_switch event from the corresponding
@@ -1134,13 +1149,13 @@ tablet_pad_dial_v2_get_user_data :: proc "contextless" (tablet_pad_dial_v2_: ^ta
 	wp_tablet_pad_group.mode_switch event received for the group of this
 	dial. Requests providing other serials than the most recent one will be
 	ignored. */
-TABLET_PAD_DIAL_V2_SET_FEEDBACK :: 0
 tablet_pad_dial_v2_set_feedback :: proc "contextless" (tablet_pad_dial_v2_: ^tablet_pad_dial_v2, description_: cstring, serial_: uint) {
 	proxy_marshal_flags(cast(^proxy)tablet_pad_dial_v2_, TABLET_PAD_DIAL_V2_SET_FEEDBACK, nil, proxy_get_version(cast(^proxy)tablet_pad_dial_v2_), 0, description_, serial_)
 }
 
-/* This destroys the client's resource for this dial object. */
+/* Opcode for `tablet_pad_dial_v2_destroy`. */
 TABLET_PAD_DIAL_V2_DESTROY :: 1
+/* This destroys the client's resource for this dial object. */
 tablet_pad_dial_v2_destroy :: proc "contextless" (tablet_pad_dial_v2_: ^tablet_pad_dial_v2) {
 	proxy_marshal_flags(cast(^proxy)tablet_pad_dial_v2_, TABLET_PAD_DIAL_V2_DESTROY, nil, proxy_get_version(cast(^proxy)tablet_pad_dial_v2_), 1)
 }
@@ -1248,4 +1263,4 @@ init_interfaces_tablet_v2 :: proc() {
 }
 
 // Functions from libwayland-client
-import wl "shared:wayland"
+import wl ".."

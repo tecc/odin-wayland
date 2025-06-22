@@ -43,25 +43,29 @@ wm_base_get_user_data :: proc "contextless" (wm_base_: ^wm_base) -> rawptr {
    return proxy_get_user_data(cast(^proxy)wm_base_)
 }
 
+/* Opcode for `wm_base_destroy`. */
+WM_BASE_DESTROY :: 0
 /* Destroy this xdg_wm_base object.
 
 	Destroying a bound xdg_wm_base object while there are surfaces
 	still alive created by this xdg_wm_base object instance is illegal
 	and will result in a defunct_surfaces error. */
-WM_BASE_DESTROY :: 0
 wm_base_destroy :: proc "contextless" (wm_base_: ^wm_base) {
 	proxy_marshal_flags(cast(^proxy)wm_base_, WM_BASE_DESTROY, nil, proxy_get_version(cast(^proxy)wm_base_), 1)
 }
 
+/* Opcode for `wm_base_create_positioner`. */
+WM_BASE_CREATE_POSITIONER :: 1
 /* Create a positioner object. A positioner object is used to position
 	surfaces relative to some parent surface. See the interface description
 	and xdg_surface.get_popup for details. */
-WM_BASE_CREATE_POSITIONER :: 1
 wm_base_create_positioner :: proc "contextless" (wm_base_: ^wm_base) -> ^positioner {
 	ret := proxy_marshal_flags(cast(^proxy)wm_base_, WM_BASE_CREATE_POSITIONER, &positioner_interface, proxy_get_version(cast(^proxy)wm_base_), 0, nil)
 	return cast(^positioner)ret
 }
 
+/* Opcode for `wm_base_get_xdg_surface`. */
+WM_BASE_GET_XDG_SURFACE :: 2
 /* This creates an xdg_surface for the given surface. While xdg_surface
 	itself is not a role, the corresponding surface may only be assigned
 	a role extending xdg_surface, such as xdg_toplevel or xdg_popup. It is
@@ -75,16 +79,16 @@ wm_base_create_positioner :: proc "contextless" (wm_base_: ^wm_base) -> ^positio
 
 	See the documentation of xdg_surface for more details about what an
 	xdg_surface is and how it is used. */
-WM_BASE_GET_XDG_SURFACE :: 2
 wm_base_get_xdg_surface :: proc "contextless" (wm_base_: ^wm_base, surface_: ^wl.surface) -> ^surface {
 	ret := proxy_marshal_flags(cast(^proxy)wm_base_, WM_BASE_GET_XDG_SURFACE, &surface_interface, proxy_get_version(cast(^proxy)wm_base_), 0, nil, surface_)
 	return cast(^surface)ret
 }
 
+/* Opcode for `wm_base_pong`. */
+WM_BASE_PONG :: 3
 /* A client must respond to a ping event with a pong request or
 	the client may be deemed unresponsive. See xdg_wm_base.ping
 	and xdg_wm_base.error.unresponsive. */
-WM_BASE_PONG :: 3
 wm_base_pong :: proc "contextless" (wm_base_: ^wm_base, serial_: uint) {
 	proxy_marshal_flags(cast(^proxy)wm_base_, WM_BASE_PONG, nil, proxy_get_version(cast(^proxy)wm_base_), 0, serial_)
 }
@@ -162,22 +166,26 @@ positioner_get_user_data :: proc "contextless" (positioner_: ^positioner) -> raw
    return proxy_get_user_data(cast(^proxy)positioner_)
 }
 
-/* Notify the compositor that the xdg_positioner will no longer be used. */
+/* Opcode for `positioner_destroy`. */
 POSITIONER_DESTROY :: 0
+/* Notify the compositor that the xdg_positioner will no longer be used. */
 positioner_destroy :: proc "contextless" (positioner_: ^positioner) {
 	proxy_marshal_flags(cast(^proxy)positioner_, POSITIONER_DESTROY, nil, proxy_get_version(cast(^proxy)positioner_), 1)
 }
 
+/* Opcode for `positioner_set_size`. */
+POSITIONER_SET_SIZE :: 1
 /* Set the size of the surface that is to be positioned with the positioner
 	object. The size is in surface-local coordinates and corresponds to the
 	window geometry. See xdg_surface.set_window_geometry.
 
 	If a zero or negative size is set the invalid_input error is raised. */
-POSITIONER_SET_SIZE :: 1
 positioner_set_size :: proc "contextless" (positioner_: ^positioner, width_: int, height_: int) {
 	proxy_marshal_flags(cast(^proxy)positioner_, POSITIONER_SET_SIZE, nil, proxy_get_version(cast(^proxy)positioner_), 0, width_, height_)
 }
 
+/* Opcode for `positioner_set_anchor_rect`. */
+POSITIONER_SET_ANCHOR_RECT :: 2
 /* Specify the anchor rectangle within the parent surface that the child
 	surface will be placed relative to. The rectangle is relative to the
 	window geometry as defined by xdg_surface.set_window_geometry of the
@@ -188,22 +196,24 @@ positioner_set_size :: proc "contextless" (positioner_: ^positioner, width_: int
 	positioned child's parent surface.
 
 	If a negative size is set the invalid_input error is raised. */
-POSITIONER_SET_ANCHOR_RECT :: 2
 positioner_set_anchor_rect :: proc "contextless" (positioner_: ^positioner, x_: int, y_: int, width_: int, height_: int) {
 	proxy_marshal_flags(cast(^proxy)positioner_, POSITIONER_SET_ANCHOR_RECT, nil, proxy_get_version(cast(^proxy)positioner_), 0, x_, y_, width_, height_)
 }
 
+/* Opcode for `positioner_set_anchor`. */
+POSITIONER_SET_ANCHOR :: 3
 /* Defines the anchor point for the anchor rectangle. The specified anchor
 	is used derive an anchor point that the child surface will be
 	positioned relative to. If a corner anchor is set (e.g. 'top_left' or
 	'bottom_right'), the anchor point will be at the specified corner;
 	otherwise, the derived anchor point will be centered on the specified
 	edge, or in the center of the anchor rectangle if no edge is specified. */
-POSITIONER_SET_ANCHOR :: 3
 positioner_set_anchor :: proc "contextless" (positioner_: ^positioner, anchor_: positioner_anchor) {
 	proxy_marshal_flags(cast(^proxy)positioner_, POSITIONER_SET_ANCHOR, nil, proxy_get_version(cast(^proxy)positioner_), 0, anchor_)
 }
 
+/* Opcode for `positioner_set_gravity`. */
+POSITIONER_SET_GRAVITY :: 4
 /* Defines in what direction a surface should be positioned, relative to
 	the anchor point of the parent surface. If a corner gravity is
 	specified (e.g. 'bottom_right' or 'top_left'), then the child surface
@@ -211,11 +221,12 @@ positioner_set_anchor :: proc "contextless" (positioner_: ^positioner, anchor_: 
 	surface will be centered over the anchor point on any axis that had no
 	gravity specified. If the gravity is not in the ‘gravity’ enum, an
 	invalid_input error is raised. */
-POSITIONER_SET_GRAVITY :: 4
 positioner_set_gravity :: proc "contextless" (positioner_: ^positioner, gravity_: positioner_gravity) {
 	proxy_marshal_flags(cast(^proxy)positioner_, POSITIONER_SET_GRAVITY, nil, proxy_get_version(cast(^proxy)positioner_), 0, gravity_)
 }
 
+/* Opcode for `positioner_set_constraint_adjustment`. */
+POSITIONER_SET_CONSTRAINT_ADJUSTMENT :: 5
 /* Specify how the window should be positioned if the originally intended
 	position caused the surface to be constrained, meaning at least
 	partially outside positioning boundaries set by the compositor. The
@@ -229,11 +240,12 @@ positioner_set_gravity :: proc "contextless" (positioner_: ^positioner, gravity_
 	are applied is specified in the corresponding adjustment descriptions.
 
 	The default adjustment is none. */
-POSITIONER_SET_CONSTRAINT_ADJUSTMENT :: 5
 positioner_set_constraint_adjustment :: proc "contextless" (positioner_: ^positioner, constraint_adjustment_: positioner_constraint_adjustment) {
 	proxy_marshal_flags(cast(^proxy)positioner_, POSITIONER_SET_CONSTRAINT_ADJUSTMENT, nil, proxy_get_version(cast(^proxy)positioner_), 0, constraint_adjustment_)
 }
 
+/* Opcode for `positioner_set_offset`. */
+POSITIONER_SET_OFFSET :: 6
 /* Specify the surface position offset relative to the position of the
 	anchor on the anchor rectangle and the anchor on the surface. For
 	example if the anchor of the anchor rectangle is at (x, y), the surface
@@ -245,22 +257,24 @@ positioner_set_constraint_adjustment :: proc "contextless" (positioner_: ^positi
 	An example use case is placing a popup menu on top of a user interface
 	element, while aligning the user interface element of the parent surface
 	with some user interface element placed somewhere in the popup surface. */
-POSITIONER_SET_OFFSET :: 6
 positioner_set_offset :: proc "contextless" (positioner_: ^positioner, x_: int, y_: int) {
 	proxy_marshal_flags(cast(^proxy)positioner_, POSITIONER_SET_OFFSET, nil, proxy_get_version(cast(^proxy)positioner_), 0, x_, y_)
 }
 
+/* Opcode for `positioner_set_reactive`. */
+POSITIONER_SET_REACTIVE :: 7
 /* When set reactive, the surface is reconstrained if the conditions used
 	for constraining changed, e.g. the parent window moved.
 
 	If the conditions changed and the popup was reconstrained, an
 	xdg_popup.configure event is sent with updated geometry, followed by an
 	xdg_surface.configure event. */
-POSITIONER_SET_REACTIVE :: 7
 positioner_set_reactive :: proc "contextless" (positioner_: ^positioner) {
 	proxy_marshal_flags(cast(^proxy)positioner_, POSITIONER_SET_REACTIVE, nil, proxy_get_version(cast(^proxy)positioner_), 0)
 }
 
+/* Opcode for `positioner_set_parent_size`. */
+POSITIONER_SET_PARENT_SIZE :: 8
 /* Set the parent window geometry the compositor should use when
 	positioning the popup. The compositor may use this information to
 	determine the future state the popup should be constrained using. If
@@ -268,16 +282,16 @@ positioner_set_reactive :: proc "contextless" (positioner_: ^positioner) {
 	positioned against, the behavior is undefined.
 
 	The arguments are given in the surface-local coordinate space. */
-POSITIONER_SET_PARENT_SIZE :: 8
 positioner_set_parent_size :: proc "contextless" (positioner_: ^positioner, parent_width_: int, parent_height_: int) {
 	proxy_marshal_flags(cast(^proxy)positioner_, POSITIONER_SET_PARENT_SIZE, nil, proxy_get_version(cast(^proxy)positioner_), 0, parent_width_, parent_height_)
 }
 
+/* Opcode for `positioner_set_parent_configure`. */
+POSITIONER_SET_PARENT_CONFIGURE :: 9
 /* Set the serial of an xdg_surface.configure event this positioner will be
 	used in response to. The compositor may use this information together
 	with set_parent_size to determine what future state the popup should be
 	constrained using. */
-POSITIONER_SET_PARENT_CONFIGURE :: 9
 positioner_set_parent_configure :: proc "contextless" (positioner_: ^positioner, serial_: uint) {
 	proxy_marshal_flags(cast(^proxy)positioner_, POSITIONER_SET_PARENT_CONFIGURE, nil, proxy_get_version(cast(^proxy)positioner_), 0, serial_)
 }
@@ -403,25 +417,29 @@ surface_get_user_data :: proc "contextless" (surface_: ^surface) -> rawptr {
    return proxy_get_user_data(cast(^proxy)surface_)
 }
 
+/* Opcode for `surface_destroy`. */
+SURFACE_DESTROY :: 0
 /* Destroy the xdg_surface object. An xdg_surface must only be destroyed
 	after its role object has been destroyed, otherwise
 	a defunct_role_object error is raised. */
-SURFACE_DESTROY :: 0
 surface_destroy :: proc "contextless" (surface_: ^surface) {
 	proxy_marshal_flags(cast(^proxy)surface_, SURFACE_DESTROY, nil, proxy_get_version(cast(^proxy)surface_), 1)
 }
 
+/* Opcode for `surface_get_toplevel`. */
+SURFACE_GET_TOPLEVEL :: 1
 /* This creates an xdg_toplevel object for the given xdg_surface and gives
 	the associated wl_surface the xdg_toplevel role.
 
 	See the documentation of xdg_toplevel for more details about what an
 	xdg_toplevel is and how it is used. */
-SURFACE_GET_TOPLEVEL :: 1
 surface_get_toplevel :: proc "contextless" (surface_: ^surface) -> ^toplevel {
 	ret := proxy_marshal_flags(cast(^proxy)surface_, SURFACE_GET_TOPLEVEL, &toplevel_interface, proxy_get_version(cast(^proxy)surface_), 0, nil)
 	return cast(^toplevel)ret
 }
 
+/* Opcode for `surface_get_popup`. */
+SURFACE_GET_POPUP :: 2
 /* This creates an xdg_popup object for the given xdg_surface and gives
 	the associated wl_surface the xdg_popup role.
 
@@ -430,12 +448,13 @@ surface_get_toplevel :: proc "contextless" (surface_: ^surface) -> ^toplevel {
 
 	See the documentation of xdg_popup for more details about what an
 	xdg_popup is and how it is used. */
-SURFACE_GET_POPUP :: 2
 surface_get_popup :: proc "contextless" (surface_: ^surface, parent_: ^surface, positioner_: ^positioner) -> ^popup {
 	ret := proxy_marshal_flags(cast(^proxy)surface_, SURFACE_GET_POPUP, &popup_interface, proxy_get_version(cast(^proxy)surface_), 0, nil, parent_, positioner_)
 	return cast(^popup)ret
 }
 
+/* Opcode for `surface_set_window_geometry`. */
+SURFACE_SET_WINDOW_GEOMETRY :: 3
 /* The window geometry of a surface is its "visible bounds" from the
 	user's perspective. Client-side decorations often have invisible
 	portions like drop-shadows which should be ignored for the
@@ -473,11 +492,12 @@ surface_get_popup :: proc "contextless" (surface_: ^surface, parent_: ^surface, 
 	The width and height of the effective window geometry must be
 	greater than zero. Setting an invalid size will raise an
 	invalid_size error. */
-SURFACE_SET_WINDOW_GEOMETRY :: 3
 surface_set_window_geometry :: proc "contextless" (surface_: ^surface, x_: int, y_: int, width_: int, height_: int) {
 	proxy_marshal_flags(cast(^proxy)surface_, SURFACE_SET_WINDOW_GEOMETRY, nil, proxy_get_version(cast(^proxy)surface_), 0, x_, y_, width_, height_)
 }
 
+/* Opcode for `surface_ack_configure`. */
+SURFACE_ACK_CONFIGURE :: 4
 /* When a configure event is received, if a client commits the
 	surface in response to the configure event, then the client
 	must make an ack_configure request sometime before the commit
@@ -510,7 +530,6 @@ surface_set_window_geometry :: proc "contextless" (surface_: ^surface, x_: int, 
 	request referencing a serial from a configure event issued before the
 	event identified by the last ack_configure request for the same
 	xdg_surface. Doing so will raise an invalid_serial error. */
-SURFACE_ACK_CONFIGURE :: 4
 surface_ack_configure :: proc "contextless" (surface_: ^surface, serial_: uint) {
 	proxy_marshal_flags(cast(^proxy)surface_, SURFACE_ACK_CONFIGURE, nil, proxy_get_version(cast(^proxy)surface_), 0, serial_)
 }
@@ -593,13 +612,16 @@ toplevel_get_user_data :: proc "contextless" (toplevel_: ^toplevel) -> rawptr {
    return proxy_get_user_data(cast(^proxy)toplevel_)
 }
 
+/* Opcode for `toplevel_destroy`. */
+TOPLEVEL_DESTROY :: 0
 /* This request destroys the role surface and unmaps the surface;
 	see "Unmapping" behavior in interface section for details. */
-TOPLEVEL_DESTROY :: 0
 toplevel_destroy :: proc "contextless" (toplevel_: ^toplevel) {
 	proxy_marshal_flags(cast(^proxy)toplevel_, TOPLEVEL_DESTROY, nil, proxy_get_version(cast(^proxy)toplevel_), 1)
 }
 
+/* Opcode for `toplevel_set_parent`. */
+TOPLEVEL_SET_PARENT :: 1
 /* Set the "parent" of this surface. This surface should be stacked
 	above the parent surface and all other ancestor surfaces.
 
@@ -620,11 +642,12 @@ toplevel_destroy :: proc "contextless" (toplevel_: ^toplevel) {
 	The parent toplevel must not be one of the child toplevel's
 	descendants, and the parent must be different from the child toplevel,
 	otherwise the invalid_parent protocol error is raised. */
-TOPLEVEL_SET_PARENT :: 1
 toplevel_set_parent :: proc "contextless" (toplevel_: ^toplevel, parent_: ^toplevel) {
 	proxy_marshal_flags(cast(^proxy)toplevel_, TOPLEVEL_SET_PARENT, nil, proxy_get_version(cast(^proxy)toplevel_), 0, parent_)
 }
 
+/* Opcode for `toplevel_set_title`. */
+TOPLEVEL_SET_TITLE :: 2
 /* Set a short title for the surface.
 
 	This string may be used to identify the surface in a task bar,
@@ -632,11 +655,12 @@ toplevel_set_parent :: proc "contextless" (toplevel_: ^toplevel, parent_: ^tople
 	compositor.
 
 	The string must be encoded in UTF-8. */
-TOPLEVEL_SET_TITLE :: 2
 toplevel_set_title :: proc "contextless" (toplevel_: ^toplevel, title_: cstring) {
 	proxy_marshal_flags(cast(^proxy)toplevel_, TOPLEVEL_SET_TITLE, nil, proxy_get_version(cast(^proxy)toplevel_), 0, title_)
 }
 
+/* Opcode for `toplevel_set_app_id`. */
+TOPLEVEL_SET_APP_ID :: 3
 /* Set an application identifier for the surface.
 
 	The app ID identifies the general class of applications to which
@@ -660,11 +684,12 @@ toplevel_set_title :: proc "contextless" (toplevel_: ^toplevel, title_: cstring)
 	names and .desktop files.
 
 	[0] https://standards.freedesktop.org/desktop-entry-spec/ */
-TOPLEVEL_SET_APP_ID :: 3
 toplevel_set_app_id :: proc "contextless" (toplevel_: ^toplevel, app_id_: cstring) {
 	proxy_marshal_flags(cast(^proxy)toplevel_, TOPLEVEL_SET_APP_ID, nil, proxy_get_version(cast(^proxy)toplevel_), 0, app_id_)
 }
 
+/* Opcode for `toplevel_show_window_menu`. */
+TOPLEVEL_SHOW_WINDOW_MENU :: 4
 /* Clients implementing client-side decorations might want to show
 	a context menu when right-clicking on the decorations, giving the
 	user a menu that they can use to maximize or minimize the window.
@@ -677,11 +702,12 @@ toplevel_set_app_id :: proc "contextless" (toplevel_: ^toplevel, app_id_: cstrin
 
 	This request must be used in response to some sort of user action
 	like a button press, key press, or touch down event. */
-TOPLEVEL_SHOW_WINDOW_MENU :: 4
 toplevel_show_window_menu :: proc "contextless" (toplevel_: ^toplevel, seat_: ^wl.seat, serial_: uint, x_: int, y_: int) {
 	proxy_marshal_flags(cast(^proxy)toplevel_, TOPLEVEL_SHOW_WINDOW_MENU, nil, proxy_get_version(cast(^proxy)toplevel_), 0, seat_, serial_, x_, y_)
 }
 
+/* Opcode for `toplevel_move`. */
+TOPLEVEL_MOVE :: 5
 /* Start an interactive, user-driven move of the surface.
 
 	This request must be used in response to some sort of user action
@@ -698,11 +724,12 @@ toplevel_show_window_menu :: proc "contextless" (toplevel_: ^toplevel, seat_: ^w
 	compositor to visually indicate that the move is taking place, such as
 	updating a pointer cursor, during the move. There is no guarantee
 	that the device focus will return when the move is completed. */
-TOPLEVEL_MOVE :: 5
 toplevel_move :: proc "contextless" (toplevel_: ^toplevel, seat_: ^wl.seat, serial_: uint) {
 	proxy_marshal_flags(cast(^proxy)toplevel_, TOPLEVEL_MOVE, nil, proxy_get_version(cast(^proxy)toplevel_), 0, seat_, serial_)
 }
 
+/* Opcode for `toplevel_resize`. */
+TOPLEVEL_RESIZE :: 6
 /* Start a user-driven, interactive resize of the surface.
 
 	This request must be used in response to some sort of user action
@@ -734,11 +761,12 @@ toplevel_move :: proc "contextless" (toplevel_: ^toplevel, seat_: ^wl.seat, seri
 	for example when dragging the top left corner. The compositor may also
 	use this information to adapt its behavior, e.g. choose an appropriate
 	cursor image. */
-TOPLEVEL_RESIZE :: 6
 toplevel_resize :: proc "contextless" (toplevel_: ^toplevel, seat_: ^wl.seat, serial_: uint, edges_: toplevel_resize_edge) {
 	proxy_marshal_flags(cast(^proxy)toplevel_, TOPLEVEL_RESIZE, nil, proxy_get_version(cast(^proxy)toplevel_), 0, seat_, serial_, edges_)
 }
 
+/* Opcode for `toplevel_set_max_size`. */
+TOPLEVEL_SET_MAX_SIZE :: 7
 /* Set a maximum size for the window.
 
 	The client can specify a maximum size so that the compositor does
@@ -772,11 +800,12 @@ toplevel_resize :: proc "contextless" (toplevel_: ^toplevel, seat_: ^wl.seat, se
 	The width and height must be greater than or equal to zero. Using
 	strictly negative values for width or height will result in a
 	invalid_size error. */
-TOPLEVEL_SET_MAX_SIZE :: 7
 toplevel_set_max_size :: proc "contextless" (toplevel_: ^toplevel, width_: int, height_: int) {
 	proxy_marshal_flags(cast(^proxy)toplevel_, TOPLEVEL_SET_MAX_SIZE, nil, proxy_get_version(cast(^proxy)toplevel_), 0, width_, height_)
 }
 
+/* Opcode for `toplevel_set_min_size`. */
+TOPLEVEL_SET_MIN_SIZE :: 8
 /* Set a minimum size for the window.
 
 	The client can specify a minimum size so that the compositor does
@@ -810,11 +839,12 @@ toplevel_set_max_size :: proc "contextless" (toplevel_: ^toplevel, width_: int, 
 	The width and height must be greater than or equal to zero. Using
 	strictly negative values for width and height will result in a
 	invalid_size error. */
-TOPLEVEL_SET_MIN_SIZE :: 8
 toplevel_set_min_size :: proc "contextless" (toplevel_: ^toplevel, width_: int, height_: int) {
 	proxy_marshal_flags(cast(^proxy)toplevel_, TOPLEVEL_SET_MIN_SIZE, nil, proxy_get_version(cast(^proxy)toplevel_), 0, width_, height_)
 }
 
+/* Opcode for `toplevel_set_maximized`. */
+TOPLEVEL_SET_MAXIMIZED :: 9
 /* Maximize the surface.
 
 	After requesting that the surface should be maximized, the compositor
@@ -834,11 +864,12 @@ toplevel_set_min_size :: proc "contextless" (toplevel_: ^toplevel, width_: int, 
 	If the surface is in a fullscreen state, this request has no direct
 	effect. It may alter the state the surface is returned to when
 	unmaximized unless overridden by the compositor. */
-TOPLEVEL_SET_MAXIMIZED :: 9
 toplevel_set_maximized :: proc "contextless" (toplevel_: ^toplevel) {
 	proxy_marshal_flags(cast(^proxy)toplevel_, TOPLEVEL_SET_MAXIMIZED, nil, proxy_get_version(cast(^proxy)toplevel_), 0)
 }
 
+/* Opcode for `toplevel_unset_maximized`. */
+TOPLEVEL_UNSET_MAXIMIZED :: 10
 /* Unmaximize the surface.
 
 	After requesting that the surface should be unmaximized, the compositor
@@ -860,11 +891,12 @@ toplevel_set_maximized :: proc "contextless" (toplevel_: ^toplevel) {
 	If the surface is in a fullscreen state, this request has no direct
 	effect. It may alter the state the surface is returned to when
 	unmaximized unless overridden by the compositor. */
-TOPLEVEL_UNSET_MAXIMIZED :: 10
 toplevel_unset_maximized :: proc "contextless" (toplevel_: ^toplevel) {
 	proxy_marshal_flags(cast(^proxy)toplevel_, TOPLEVEL_UNSET_MAXIMIZED, nil, proxy_get_version(cast(^proxy)toplevel_), 0)
 }
 
+/* Opcode for `toplevel_set_fullscreen`. */
+TOPLEVEL_SET_FULLSCREEN :: 11
 /* Make the surface fullscreen.
 
 	After requesting that the surface should be fullscreened, the
@@ -888,11 +920,12 @@ toplevel_unset_maximized :: proc "contextless" (toplevel_: ^toplevel) {
 	sure that other screen content not part of the same surface tree (made
 	up of subsurfaces, popups or similarly coupled surfaces) are not
 	visible below the fullscreened surface. */
-TOPLEVEL_SET_FULLSCREEN :: 11
 toplevel_set_fullscreen :: proc "contextless" (toplevel_: ^toplevel, output_: ^wl.output) {
 	proxy_marshal_flags(cast(^proxy)toplevel_, TOPLEVEL_SET_FULLSCREEN, nil, proxy_get_version(cast(^proxy)toplevel_), 0, output_)
 }
 
+/* Opcode for `toplevel_unset_fullscreen`. */
+TOPLEVEL_UNSET_FULLSCREEN :: 12
 /* Make the surface no longer fullscreen.
 
 	After requesting that the surface should be unfullscreened, the
@@ -910,11 +943,12 @@ toplevel_set_fullscreen :: proc "contextless" (toplevel_: ^toplevel, output_: ^w
 
 	The client must also acknowledge the configure when committing the new
 	content (see ack_configure). */
-TOPLEVEL_UNSET_FULLSCREEN :: 12
 toplevel_unset_fullscreen :: proc "contextless" (toplevel_: ^toplevel) {
 	proxy_marshal_flags(cast(^proxy)toplevel_, TOPLEVEL_UNSET_FULLSCREEN, nil, proxy_get_version(cast(^proxy)toplevel_), 0)
 }
 
+/* Opcode for `toplevel_set_minimized`. */
+TOPLEVEL_SET_MINIMIZED :: 13
 /* Request that the compositor minimize your surface. There is no
 	way to know if the surface is currently minimized, nor is there
 	any way to unset minimization on this surface.
@@ -923,7 +957,6 @@ toplevel_unset_fullscreen :: proc "contextless" (toplevel_: ^toplevel) {
 	instead use the wl_surface.frame event for this, as this will
 	also work with live previews on windows in Alt-Tab, Expose or
 	similar compositor features. */
-TOPLEVEL_SET_MINIMIZED :: 13
 toplevel_set_minimized :: proc "contextless" (toplevel_: ^toplevel) {
 	proxy_marshal_flags(cast(^proxy)toplevel_, TOPLEVEL_SET_MINIMIZED, nil, proxy_get_version(cast(^proxy)toplevel_), 0)
 }
@@ -1111,16 +1144,19 @@ popup_get_user_data :: proc "contextless" (popup_: ^popup) -> rawptr {
    return proxy_get_user_data(cast(^proxy)popup_)
 }
 
+/* Opcode for `popup_destroy`. */
+POPUP_DESTROY :: 0
 /* This destroys the popup. Explicitly destroying the xdg_popup
 	object will also dismiss the popup, and unmap the surface.
 
 	If this xdg_popup is not the "topmost" popup, the
 	xdg_wm_base.not_the_topmost_popup protocol error will be sent. */
-POPUP_DESTROY :: 0
 popup_destroy :: proc "contextless" (popup_: ^popup) {
 	proxy_marshal_flags(cast(^proxy)popup_, POPUP_DESTROY, nil, proxy_get_version(cast(^proxy)popup_), 1)
 }
 
+/* Opcode for `popup_grab`. */
+POPUP_GRAB :: 1
 /* This request makes the created popup take an explicit grab. An explicit
 	grab will be dismissed when the user dismisses the popup, or when the
 	client destroys the xdg_popup. This can be done by the user clicking
@@ -1158,11 +1194,12 @@ popup_destroy :: proc "contextless" (popup_: ^popup) {
 	and touch events for all their surfaces as normal (similar to an
 	"owner-events" grab in X11 parlance), while the top most grabbing popup
 	will always have keyboard focus. */
-POPUP_GRAB :: 1
 popup_grab :: proc "contextless" (popup_: ^popup, seat_: ^wl.seat, serial_: uint) {
 	proxy_marshal_flags(cast(^proxy)popup_, POPUP_GRAB, nil, proxy_get_version(cast(^proxy)popup_), 0, seat_, serial_)
 }
 
+/* Opcode for `popup_reposition`. */
+POPUP_REPOSITION :: 2
 /* Reposition an already-mapped popup. The popup will be placed given the
 	details in the passed xdg_positioner object, and a
 	xdg_popup.repositioned followed by xdg_popup.configure and
@@ -1186,7 +1223,6 @@ popup_grab :: proc "contextless" (popup_: ^popup, seat_: ^wl.seat, serial_: uint
 	If the popup is repositioned together with a parent that is being
 	resized, but not in response to a configure event, the client should
 	send an xdg_positioner.set_parent_size request. */
-POPUP_REPOSITION :: 2
 popup_reposition :: proc "contextless" (popup_: ^popup, positioner_: ^positioner, token_: uint) {
 	proxy_marshal_flags(cast(^proxy)popup_, POPUP_REPOSITION, nil, proxy_get_version(cast(^proxy)popup_), 0, positioner_, token_)
 }
@@ -1287,7 +1323,7 @@ init_interfaces_xdg_shell :: proc() {
 }
 
 // Functions from libwayland-client
-import wl "shared:wayland"
+import wl ".."
 fixed_t :: wl.fixed_t
 proxy :: wl.proxy
 message :: wl.message

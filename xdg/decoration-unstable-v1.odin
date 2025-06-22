@@ -37,13 +37,16 @@ decoration_manager_v1_get_user_data :: proc "contextless" (decoration_manager_v1
    return proxy_get_user_data(cast(^proxy)decoration_manager_v1_)
 }
 
+/* Opcode for `decoration_manager_v1_destroy`. */
+DECORATION_MANAGER_V1_DESTROY :: 0
 /* Destroy the decoration manager. This doesn't destroy objects created
         with the manager. */
-DECORATION_MANAGER_V1_DESTROY :: 0
 decoration_manager_v1_destroy :: proc "contextless" (decoration_manager_v1_: ^decoration_manager_v1) {
 	proxy_marshal_flags(cast(^proxy)decoration_manager_v1_, DECORATION_MANAGER_V1_DESTROY, nil, proxy_get_version(cast(^proxy)decoration_manager_v1_), 1)
 }
 
+/* Opcode for `decoration_manager_v1_get_toplevel_decoration`. */
+DECORATION_MANAGER_V1_GET_TOPLEVEL_DECORATION :: 1
 /* Create a new decoration object associated with the given toplevel.
 
         Creating an xdg_toplevel_decoration from an xdg_toplevel which has a
@@ -51,7 +54,6 @@ decoration_manager_v1_destroy :: proc "contextless" (decoration_manager_v1_: ^de
         client to attach or manipulate a buffer prior to the first
         xdg_toplevel_decoration.configure event must also be treated as
         errors. */
-DECORATION_MANAGER_V1_GET_TOPLEVEL_DECORATION :: 1
 decoration_manager_v1_get_toplevel_decoration :: proc "contextless" (decoration_manager_v1_: ^decoration_manager_v1, toplevel_: ^toplevel) -> ^toplevel_decoration_v1 {
 	ret := proxy_marshal_flags(cast(^proxy)decoration_manager_v1_, DECORATION_MANAGER_V1_GET_TOPLEVEL_DECORATION, &toplevel_decoration_v1_interface, proxy_get_version(cast(^proxy)decoration_manager_v1_), 0, nil, toplevel_)
 	return cast(^toplevel_decoration_v1)ret
@@ -80,13 +82,16 @@ toplevel_decoration_v1_get_user_data :: proc "contextless" (toplevel_decoration_
    return proxy_get_user_data(cast(^proxy)toplevel_decoration_v1_)
 }
 
+/* Opcode for `toplevel_decoration_v1_destroy`. */
+TOPLEVEL_DECORATION_V1_DESTROY :: 0
 /* Switch back to a mode without any server-side decorations at the next
         commit. */
-TOPLEVEL_DECORATION_V1_DESTROY :: 0
 toplevel_decoration_v1_destroy :: proc "contextless" (toplevel_decoration_v1_: ^toplevel_decoration_v1) {
 	proxy_marshal_flags(cast(^proxy)toplevel_decoration_v1_, TOPLEVEL_DECORATION_V1_DESTROY, nil, proxy_get_version(cast(^proxy)toplevel_decoration_v1_), 1)
 }
 
+/* Opcode for `toplevel_decoration_v1_set_mode`. */
+TOPLEVEL_DECORATION_V1_SET_MODE :: 1
 /* Set the toplevel surface decoration mode. This informs the compositor
         that the client prefers the provided decoration mode.
 
@@ -108,16 +113,16 @@ toplevel_decoration_v1_destroy :: proc "contextless" (toplevel_decoration_v1_: ^
 
         If an invalid mode is supplied by the client, the invalid_mode protocol
         error is raised by the compositor. */
-TOPLEVEL_DECORATION_V1_SET_MODE :: 1
 toplevel_decoration_v1_set_mode :: proc "contextless" (toplevel_decoration_v1_: ^toplevel_decoration_v1, mode_: toplevel_decoration_v1_mode) {
 	proxy_marshal_flags(cast(^proxy)toplevel_decoration_v1_, TOPLEVEL_DECORATION_V1_SET_MODE, nil, proxy_get_version(cast(^proxy)toplevel_decoration_v1_), 0, mode_)
 }
 
+/* Opcode for `toplevel_decoration_v1_unset_mode`. */
+TOPLEVEL_DECORATION_V1_UNSET_MODE :: 2
 /* Unset the toplevel surface decoration mode. This informs the compositor
         that the client doesn't prefer a particular decoration mode.
 
         This request has the same semantics as set_mode. */
-TOPLEVEL_DECORATION_V1_UNSET_MODE :: 2
 toplevel_decoration_v1_unset_mode :: proc "contextless" (toplevel_decoration_v1_: ^toplevel_decoration_v1) {
 	proxy_marshal_flags(cast(^proxy)toplevel_decoration_v1_, TOPLEVEL_DECORATION_V1_UNSET_MODE, nil, proxy_get_version(cast(^proxy)toplevel_decoration_v1_), 0)
 }
@@ -179,4 +184,4 @@ init_interfaces_xdg_decoration_unstable_v1 :: proc() {
 }
 
 // Functions from libwayland-client
-import wl "shared:wayland"
+import wl ".."

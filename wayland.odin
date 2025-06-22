@@ -89,6 +89,8 @@ display_get_user_data :: proc "contextless" (display_: ^display) -> rawptr {
    return proxy_get_user_data(cast(^proxy)display_)
 }
 
+/* Opcode for `display_sync`. */
+DISPLAY_SYNC :: 0
 /* The sync request asks the server to emit the 'done' event
 	on the returned wl_callback object.  Since requests are
 	handled in-order and events are delivered in-order, this can
@@ -100,12 +102,13 @@ display_get_user_data :: proc "contextless" (display_: ^display) -> rawptr {
 	attempt to use it after that point.
 
 	The callback_data passed in the callback is undefined and should be ignored. */
-DISPLAY_SYNC :: 0
 display_sync :: proc "contextless" (display_: ^display) -> ^callback {
 	ret := proxy_marshal_flags(cast(^proxy)display_, DISPLAY_SYNC, &callback_interface, proxy_get_version(cast(^proxy)display_), 0, nil)
 	return cast(^callback)ret
 }
 
+/* Opcode for `display_get_registry`. */
+DISPLAY_GET_REGISTRY :: 1
 /* This request creates a registry object that allows the client
 	to list and bind the global objects available from the
 	compositor.
@@ -115,7 +118,6 @@ display_sync :: proc "contextless" (display_: ^display) -> ^callback {
 	client disconnects, not when the client side proxy is destroyed.
 	Therefore, clients should invoke get_registry as infrequently as
 	possible to avoid wasting memory. */
-DISPLAY_GET_REGISTRY :: 1
 display_get_registry :: proc "contextless" (display_: ^display) -> ^registry {
 	ret := proxy_marshal_flags(cast(^proxy)display_, DISPLAY_GET_REGISTRY, &registry_interface, proxy_get_version(cast(^proxy)display_), 0, nil)
 	return cast(^registry)ret
@@ -193,9 +195,10 @@ registry_get_user_data :: proc "contextless" (registry_: ^registry) -> rawptr {
    return proxy_get_user_data(cast(^proxy)registry_)
 }
 
+/* Opcode for `registry_bind`. */
+REGISTRY_BIND :: 0
 /* Binds a new, client-created object to the server using the
 	specified name as the identifier. */
-REGISTRY_BIND :: 0
 registry_bind :: proc "contextless" (registry_: ^registry, name_: uint, id_: ^interface, version: uint) -> rawptr {
 	ret := proxy_marshal_flags(cast(^proxy)registry_, REGISTRY_BIND, id_, version, 0, name_, id_.name, version)
 	return cast(rawptr)ret
@@ -287,15 +290,17 @@ compositor_get_user_data :: proc "contextless" (compositor_: ^compositor) -> raw
    return proxy_get_user_data(cast(^proxy)compositor_)
 }
 
-/* Ask the compositor to create a new surface. */
+/* Opcode for `compositor_create_surface`. */
 COMPOSITOR_CREATE_SURFACE :: 0
+/* Ask the compositor to create a new surface. */
 compositor_create_surface :: proc "contextless" (compositor_: ^compositor) -> ^surface {
 	ret := proxy_marshal_flags(cast(^proxy)compositor_, COMPOSITOR_CREATE_SURFACE, &surface_interface, proxy_get_version(cast(^proxy)compositor_), 0, nil)
 	return cast(^surface)ret
 }
 
-/* Ask the compositor to create a new region. */
+/* Opcode for `compositor_create_region`. */
 COMPOSITOR_CREATE_REGION :: 1
+/* Ask the compositor to create a new region. */
 compositor_create_region :: proc "contextless" (compositor_: ^compositor) -> ^region {
 	ret := proxy_marshal_flags(cast(^proxy)compositor_, COMPOSITOR_CREATE_REGION, &region_interface, proxy_get_version(cast(^proxy)compositor_), 0, nil)
 	return cast(^region)ret
@@ -329,6 +334,8 @@ shm_pool_get_user_data :: proc "contextless" (shm_pool_: ^shm_pool) -> rawptr {
    return proxy_get_user_data(cast(^proxy)shm_pool_)
 }
 
+/* Opcode for `shm_pool_create_buffer`. */
+SHM_POOL_CREATE_BUFFER :: 0
 /* Create a wl_buffer object from the pool.
 
 	The buffer is created offset bytes into the pool and has
@@ -340,22 +347,24 @@ shm_pool_get_user_data :: proc "contextless" (shm_pool_: ^shm_pool) -> rawptr {
 	A buffer will keep a reference to the pool it was created from
 	so it is valid to destroy the pool immediately after creating
 	a buffer from it. */
-SHM_POOL_CREATE_BUFFER :: 0
 shm_pool_create_buffer :: proc "contextless" (shm_pool_: ^shm_pool, offset_: int, width_: int, height_: int, stride_: int, format_: shm_format) -> ^buffer {
 	ret := proxy_marshal_flags(cast(^proxy)shm_pool_, SHM_POOL_CREATE_BUFFER, &buffer_interface, proxy_get_version(cast(^proxy)shm_pool_), 0, nil, offset_, width_, height_, stride_, format_)
 	return cast(^buffer)ret
 }
 
+/* Opcode for `shm_pool_destroy`. */
+SHM_POOL_DESTROY :: 1
 /* Destroy the shared memory pool.
 
 	The mmapped memory will be released when all
 	buffers that have been created from this pool
 	are gone. */
-SHM_POOL_DESTROY :: 1
 shm_pool_destroy :: proc "contextless" (shm_pool_: ^shm_pool) {
 	proxy_marshal_flags(cast(^proxy)shm_pool_, SHM_POOL_DESTROY, nil, proxy_get_version(cast(^proxy)shm_pool_), 1)
 }
 
+/* Opcode for `shm_pool_resize`. */
+SHM_POOL_RESIZE :: 2
 /* This request will cause the server to remap the backing memory
 	for the pool from the file descriptor passed when the pool was
 	created, but using the new size.  This request can only be
@@ -366,7 +375,6 @@ shm_pool_destroy :: proc "contextless" (shm_pool_: ^shm_pool) {
 	file descriptor passed at creation time. It is the client's
 	responsibility to ensure that the file is at least as big as
 	the new pool size. */
-SHM_POOL_RESIZE :: 2
 shm_pool_resize :: proc "contextless" (shm_pool_: ^shm_pool, size_: int) {
 	proxy_marshal_flags(cast(^proxy)shm_pool_, SHM_POOL_RESIZE, nil, proxy_get_version(cast(^proxy)shm_pool_), 0, size_)
 }
@@ -398,22 +406,24 @@ shm_get_user_data :: proc "contextless" (shm_: ^shm) -> rawptr {
    return proxy_get_user_data(cast(^proxy)shm_)
 }
 
+/* Opcode for `shm_create_pool`. */
+SHM_CREATE_POOL :: 0
 /* Create a new wl_shm_pool object.
 
 	The pool can be used to create shared memory based buffer
 	objects.  The server will mmap size bytes of the passed file
 	descriptor, to use as backing memory for the pool. */
-SHM_CREATE_POOL :: 0
 shm_create_pool :: proc "contextless" (shm_: ^shm, fd_: int, size_: int) -> ^shm_pool {
 	ret := proxy_marshal_flags(cast(^proxy)shm_, SHM_CREATE_POOL, &shm_pool_interface, proxy_get_version(cast(^proxy)shm_), 0, nil, fd_, size_)
 	return cast(^shm_pool)ret
 }
 
+/* Opcode for `shm_release`. */
+SHM_RELEASE :: 1
 /* Using this request a client can tell the server that it is not going to
 	use the shm object anymore.
 
 	Objects created via this interface remain unaffected. */
-SHM_RELEASE :: 1
 shm_release :: proc "contextless" (shm_: ^shm) {
 	proxy_marshal_flags(cast(^proxy)shm_, SHM_RELEASE, nil, proxy_get_version(cast(^proxy)shm_), 1)
 }
@@ -612,11 +622,12 @@ buffer_get_user_data :: proc "contextless" (buffer_: ^buffer) -> rawptr {
    return proxy_get_user_data(cast(^proxy)buffer_)
 }
 
+/* Opcode for `buffer_destroy`. */
+BUFFER_DESTROY :: 0
 /* Destroy a buffer. If and how you need to release the backing
 	storage is defined by the buffer factory interface.
 
 	For possible side-effects to a surface, see wl_surface.attach. */
-BUFFER_DESTROY :: 0
 buffer_destroy :: proc "contextless" (buffer_: ^buffer) {
 	proxy_marshal_flags(cast(^proxy)buffer_, BUFFER_DESTROY, nil, proxy_get_version(cast(^proxy)buffer_), 1)
 }
@@ -669,6 +680,8 @@ data_offer_get_user_data :: proc "contextless" (data_offer_: ^data_offer) -> raw
    return proxy_get_user_data(cast(^proxy)data_offer_)
 }
 
+/* Opcode for `data_offer_accept`. */
+DATA_OFFER_ACCEPT :: 0
 /* Indicate that the client can accept the given mime type, or
 	NULL for not accepted.
 
@@ -683,11 +696,12 @@ data_offer_get_user_data :: proc "contextless" (data_offer_: ^data_offer) -> raw
 	will be cancelled and the corresponding drag source will receive
 	wl_data_source.cancelled. Clients may still use this event in
 	conjunction with wl_data_source.action for feedback. */
-DATA_OFFER_ACCEPT :: 0
 data_offer_accept :: proc "contextless" (data_offer_: ^data_offer, serial_: uint, mime_type_: cstring) {
 	proxy_marshal_flags(cast(^proxy)data_offer_, DATA_OFFER_ACCEPT, nil, proxy_get_version(cast(^proxy)data_offer_), 0, serial_, mime_type_)
 }
 
+/* Opcode for `data_offer_receive`. */
+DATA_OFFER_RECEIVE :: 1
 /* To transfer the offered data, the client issues this request
 	and indicates the mime type it wants to receive.  The transfer
 	happens through the passed file descriptor (typically created
@@ -703,17 +717,19 @@ data_offer_accept :: proc "contextless" (data_offer_: ^data_offer, serial_: uint
 	both before and after wl_data_device.drop. Drag-and-drop destination
 	clients may preemptively fetch data or examine it more closely to
 	determine acceptance. */
-DATA_OFFER_RECEIVE :: 1
 data_offer_receive :: proc "contextless" (data_offer_: ^data_offer, mime_type_: cstring, fd_: int) {
 	proxy_marshal_flags(cast(^proxy)data_offer_, DATA_OFFER_RECEIVE, nil, proxy_get_version(cast(^proxy)data_offer_), 0, mime_type_, fd_)
 }
 
-/* Destroy the data offer. */
+/* Opcode for `data_offer_destroy`. */
 DATA_OFFER_DESTROY :: 2
+/* Destroy the data offer. */
 data_offer_destroy :: proc "contextless" (data_offer_: ^data_offer) {
 	proxy_marshal_flags(cast(^proxy)data_offer_, DATA_OFFER_DESTROY, nil, proxy_get_version(cast(^proxy)data_offer_), 1)
 }
 
+/* Opcode for `data_offer_finish`. */
+DATA_OFFER_FINISH :: 3
 /* Notifies the compositor that the drag destination successfully
 	finished the drag-and-drop operation.
 
@@ -728,11 +744,12 @@ data_offer_destroy :: proc "contextless" (data_offer_: ^data_offer) {
 
 	If wl_data_offer.finish request is received for a non drag and drop
 	operation, the invalid_finish protocol error is raised. */
-DATA_OFFER_FINISH :: 3
 data_offer_finish :: proc "contextless" (data_offer_: ^data_offer) {
 	proxy_marshal_flags(cast(^proxy)data_offer_, DATA_OFFER_FINISH, nil, proxy_get_version(cast(^proxy)data_offer_), 0)
 }
 
+/* Opcode for `data_offer_set_actions`. */
+DATA_OFFER_SET_ACTIONS :: 4
 /* Sets the actions that the destination side client supports for
 	this operation. This request may trigger the emission of
 	wl_data_source.action and wl_data_offer.action events if the compositor
@@ -764,7 +781,6 @@ data_offer_finish :: proc "contextless" (data_offer_: ^data_offer) {
 
 	This request can only be made on drag-and-drop offers, a protocol error
 	will be raised otherwise. */
-DATA_OFFER_SET_ACTIONS :: 4
 data_offer_set_actions :: proc "contextless" (data_offer_: ^data_offer, dnd_actions_: data_device_manager_dnd_action, preferred_action_: data_device_manager_dnd_action) {
 	proxy_marshal_flags(cast(^proxy)data_offer_, DATA_OFFER_SET_ACTIONS, nil, proxy_get_version(cast(^proxy)data_offer_), 0, dnd_actions_, preferred_action_)
 }
@@ -859,20 +875,24 @@ data_source_get_user_data :: proc "contextless" (data_source_: ^data_source) -> 
    return proxy_get_user_data(cast(^proxy)data_source_)
 }
 
+/* Opcode for `data_source_offer`. */
+DATA_SOURCE_OFFER :: 0
 /* This request adds a mime type to the set of mime types
 	advertised to targets.  Can be called several times to offer
 	multiple types. */
-DATA_SOURCE_OFFER :: 0
 data_source_offer :: proc "contextless" (data_source_: ^data_source, mime_type_: cstring) {
 	proxy_marshal_flags(cast(^proxy)data_source_, DATA_SOURCE_OFFER, nil, proxy_get_version(cast(^proxy)data_source_), 0, mime_type_)
 }
 
-/* Destroy the data source. */
+/* Opcode for `data_source_destroy`. */
 DATA_SOURCE_DESTROY :: 1
+/* Destroy the data source. */
 data_source_destroy :: proc "contextless" (data_source_: ^data_source) {
 	proxy_marshal_flags(cast(^proxy)data_source_, DATA_SOURCE_DESTROY, nil, proxy_get_version(cast(^proxy)data_source_), 1)
 }
 
+/* Opcode for `data_source_set_actions`. */
+DATA_SOURCE_SET_ACTIONS :: 2
 /* Sets the actions that the source side client supports for this
 	operation. This request may trigger wl_data_source.action and
 	wl_data_offer.action events if the compositor needs to change the
@@ -886,7 +906,6 @@ data_source_destroy :: proc "contextless" (data_source_: ^data_source) {
 	used in drag-and-drop, so it must be performed before
 	wl_data_device.start_drag. Attempting to use the source other than
 	for drag-and-drop will raise a protocol error. */
-DATA_SOURCE_SET_ACTIONS :: 2
 data_source_set_actions :: proc "contextless" (data_source_: ^data_source, dnd_actions_: data_device_manager_dnd_action) {
 	proxy_marshal_flags(cast(^proxy)data_source_, DATA_SOURCE_SET_ACTIONS, nil, proxy_get_version(cast(^proxy)data_source_), 0, dnd_actions_)
 }
@@ -1013,6 +1032,8 @@ data_device_get_user_data :: proc "contextless" (data_device_: ^data_device) -> 
    return proxy_get_user_data(cast(^proxy)data_device_)
 }
 
+/* Opcode for `data_device_start_drag`. */
+DATA_DEVICE_START_DRAG :: 0
 /* This request asks the compositor to start a drag-and-drop
 	operation on behalf of the client.
 
@@ -1042,11 +1063,12 @@ data_device_get_user_data :: proc "contextless" (data_device_: ^data_device) -> 
 	The given source may not be used in any further set_selection or
 	start_drag requests. Attempting to reuse a previously-used source
 	may send a used_source error. */
-DATA_DEVICE_START_DRAG :: 0
 data_device_start_drag :: proc "contextless" (data_device_: ^data_device, source_: ^data_source, origin_: ^surface, icon_: ^surface, serial_: uint) {
 	proxy_marshal_flags(cast(^proxy)data_device_, DATA_DEVICE_START_DRAG, nil, proxy_get_version(cast(^proxy)data_device_), 0, source_, origin_, icon_, serial_)
 }
 
+/* Opcode for `data_device_set_selection`. */
+DATA_DEVICE_SET_SELECTION :: 1
 /* This request asks the compositor to set the selection
 	to the data from the source on behalf of the client.
 
@@ -1055,13 +1077,13 @@ data_device_start_drag :: proc "contextless" (data_device_: ^data_device, source
 	The given source may not be used in any further set_selection or
 	start_drag requests. Attempting to reuse a previously-used source
 	may send a used_source error. */
-DATA_DEVICE_SET_SELECTION :: 1
 data_device_set_selection :: proc "contextless" (data_device_: ^data_device, source_: ^data_source, serial_: uint) {
 	proxy_marshal_flags(cast(^proxy)data_device_, DATA_DEVICE_SET_SELECTION, nil, proxy_get_version(cast(^proxy)data_device_), 0, source_, serial_)
 }
 
-/* This request destroys the data device. */
+/* Opcode for `data_device_release`. */
 DATA_DEVICE_RELEASE :: 2
+/* This request destroys the data device. */
 data_device_release :: proc "contextless" (data_device_: ^data_device) {
 	proxy_marshal_flags(cast(^proxy)data_device_, DATA_DEVICE_RELEASE, nil, proxy_get_version(cast(^proxy)data_device_), 1)
 }
@@ -1173,15 +1195,17 @@ data_device_manager_get_user_data :: proc "contextless" (data_device_manager_: ^
    return proxy_get_user_data(cast(^proxy)data_device_manager_)
 }
 
-/* Create a new data source. */
+/* Opcode for `data_device_manager_create_data_source`. */
 DATA_DEVICE_MANAGER_CREATE_DATA_SOURCE :: 0
+/* Create a new data source. */
 data_device_manager_create_data_source :: proc "contextless" (data_device_manager_: ^data_device_manager) -> ^data_source {
 	ret := proxy_marshal_flags(cast(^proxy)data_device_manager_, DATA_DEVICE_MANAGER_CREATE_DATA_SOURCE, &data_source_interface, proxy_get_version(cast(^proxy)data_device_manager_), 0, nil)
 	return cast(^data_source)ret
 }
 
-/* Create a new data device for a given seat. */
+/* Opcode for `data_device_manager_get_data_device`. */
 DATA_DEVICE_MANAGER_GET_DATA_DEVICE :: 1
+/* Create a new data device for a given seat. */
 data_device_manager_get_data_device :: proc "contextless" (data_device_manager_: ^data_device_manager, seat_: ^seat) -> ^data_device {
 	ret := proxy_marshal_flags(cast(^proxy)data_device_manager_, DATA_DEVICE_MANAGER_GET_DATA_DEVICE, &data_device_interface, proxy_get_version(cast(^proxy)data_device_manager_), 0, nil, seat_)
 	return cast(^data_device)ret
@@ -1279,12 +1303,15 @@ surface_get_user_data :: proc "contextless" (surface_: ^surface) -> rawptr {
    return proxy_get_user_data(cast(^proxy)surface_)
 }
 
-/* Deletes the surface and invalidates its object ID. */
+/* Opcode for `surface_destroy`. */
 SURFACE_DESTROY :: 0
+/* Deletes the surface and invalidates its object ID. */
 surface_destroy :: proc "contextless" (surface_: ^surface) {
 	proxy_marshal_flags(cast(^proxy)surface_, SURFACE_DESTROY, nil, proxy_get_version(cast(^proxy)surface_), 1)
 }
 
+/* Opcode for `surface_attach`. */
+SURFACE_ATTACH :: 1
 /* Set a buffer as the content of this surface.
 
 	The new size of the surface is calculated based on the buffer
@@ -1330,7 +1357,8 @@ surface_destroy :: proc "contextless" (surface_: ^surface) {
 	the delivery of wl_buffer.release events becomes undefined. A well
 	behaved client should not rely on wl_buffer.release events in this
 	case. Alternatively, a client could create multiple wl_buffer objects
-	from the same backing storage or use wp_linux_buffer_release.
+	from the same backing storage or use a protocol extension providing
+	per-commit release notifications.
 
 	Destroying the wl_buffer after wl_buffer.release does not change
 	the surface contents. Destroying the wl_buffer before wl_buffer.release
@@ -1349,11 +1377,12 @@ surface_destroy :: proc "contextless" (surface_: ^surface) {
 	maximise compatibility should not destroy pending buffers and should
 	ensure that they explicitly remove content from surfaces, even after
 	destroying buffers. */
-SURFACE_ATTACH :: 1
 surface_attach :: proc "contextless" (surface_: ^surface, buffer_: ^buffer, x_: int, y_: int) {
 	proxy_marshal_flags(cast(^proxy)surface_, SURFACE_ATTACH, nil, proxy_get_version(cast(^proxy)surface_), 0, buffer_, x_, y_)
 }
 
+/* Opcode for `surface_damage`. */
+SURFACE_DAMAGE :: 2
 /* This request is used to describe the regions where the pending
 	buffer is different from the current surface contents, and where
 	the surface therefore needs to be repainted. The compositor
@@ -1375,11 +1404,12 @@ surface_attach :: proc "contextless" (surface_: ^surface, buffer_: ^buffer, x_: 
 	Note! New clients should not use this request. Instead damage can be
 	posted with wl_surface.damage_buffer which uses buffer coordinates
 	instead of surface coordinates. */
-SURFACE_DAMAGE :: 2
 surface_damage :: proc "contextless" (surface_: ^surface, x_: int, y_: int, width_: int, height_: int) {
 	proxy_marshal_flags(cast(^proxy)surface_, SURFACE_DAMAGE, nil, proxy_get_version(cast(^proxy)surface_), 0, x_, y_, width_, height_)
 }
 
+/* Opcode for `surface_frame`. */
+SURFACE_FRAME :: 3
 /* Request a notification when it is a good time to start drawing a new
 	frame, by creating a frame callback. This is useful for throttling
 	redrawing operations, and driving animations.
@@ -1412,12 +1442,13 @@ surface_damage :: proc "contextless" (surface_: ^surface, x_: int, y_: int, widt
 
 	The callback_data passed in the callback is the current time, in
 	milliseconds, with an undefined base. */
-SURFACE_FRAME :: 3
 surface_frame :: proc "contextless" (surface_: ^surface) -> ^callback {
 	ret := proxy_marshal_flags(cast(^proxy)surface_, SURFACE_FRAME, &callback_interface, proxy_get_version(cast(^proxy)surface_), 0, nil)
 	return cast(^callback)ret
 }
 
+/* Opcode for `surface_set_opaque_region`. */
+SURFACE_SET_OPAQUE_REGION :: 4
 /* This request sets the region of the surface that contains
 	opaque content.
 
@@ -1442,11 +1473,12 @@ surface_frame :: proc "contextless" (surface_: ^surface) -> ^callback {
 	opaque region has copy semantics, and the wl_region object can be
 	destroyed immediately. A NULL wl_region causes the pending opaque
 	region to be set to empty. */
-SURFACE_SET_OPAQUE_REGION :: 4
 surface_set_opaque_region :: proc "contextless" (surface_: ^surface, region_: ^region) {
 	proxy_marshal_flags(cast(^proxy)surface_, SURFACE_SET_OPAQUE_REGION, nil, proxy_get_version(cast(^proxy)surface_), 0, region_)
 }
 
+/* Opcode for `surface_set_input_region`. */
+SURFACE_SET_INPUT_REGION :: 5
 /* This request sets the region of the surface that can receive
 	pointer and touch events.
 
@@ -1469,11 +1501,12 @@ surface_set_opaque_region :: proc "contextless" (surface_: ^surface, region_: ^r
 	has copy semantics, and the wl_region object can be destroyed
 	immediately. A NULL wl_region causes the input region to be set
 	to infinite. */
-SURFACE_SET_INPUT_REGION :: 5
 surface_set_input_region :: proc "contextless" (surface_: ^surface, region_: ^region) {
 	proxy_marshal_flags(cast(^proxy)surface_, SURFACE_SET_INPUT_REGION, nil, proxy_get_version(cast(^proxy)surface_), 0, region_)
 }
 
+/* Opcode for `surface_commit`. */
+SURFACE_COMMIT :: 6
 /* Surface state (input, opaque, and damage regions, attached buffers,
 	etc.) is double-buffered. Protocol requests modify the pending state,
 	as opposed to the active state in use by the compositor.
@@ -1493,11 +1526,12 @@ surface_set_input_region :: proc "contextless" (surface_: ^surface, region_: ^re
 	to affect double-buffered state.
 
 	Other interfaces may add further double-buffered surface state. */
-SURFACE_COMMIT :: 6
 surface_commit :: proc "contextless" (surface_: ^surface) {
 	proxy_marshal_flags(cast(^proxy)surface_, SURFACE_COMMIT, nil, proxy_get_version(cast(^proxy)surface_), 0)
 }
 
+/* Opcode for `surface_set_buffer_transform`. */
+SURFACE_SET_BUFFER_TRANSFORM :: 7
 /* This request sets the transformation that the client has already applied
 	to the content of the buffer. The accepted values for the transform
 	parameter are the values for wl_output.transform.
@@ -1529,11 +1563,12 @@ surface_commit :: proc "contextless" (surface_: ^surface) {
 	If transform is not one of the values from the
 	wl_output.transform enum the invalid_transform protocol error
 	is raised. */
-SURFACE_SET_BUFFER_TRANSFORM :: 7
 surface_set_buffer_transform :: proc "contextless" (surface_: ^surface, transform_: output_transform) {
 	proxy_marshal_flags(cast(^proxy)surface_, SURFACE_SET_BUFFER_TRANSFORM, nil, proxy_get_version(cast(^proxy)surface_), 0, transform_)
 }
 
+/* Opcode for `surface_set_buffer_scale`. */
+SURFACE_SET_BUFFER_SCALE :: 8
 /* This request sets an optional scaling factor on how the compositor
 	interprets the contents of the buffer attached to the window.
 
@@ -1557,11 +1592,12 @@ surface_set_buffer_transform :: proc "contextless" (surface_: ^surface, transfor
 
 	If scale is not greater than 0 the invalid_scale protocol error is
 	raised. */
-SURFACE_SET_BUFFER_SCALE :: 8
 surface_set_buffer_scale :: proc "contextless" (surface_: ^surface, scale_: int) {
 	proxy_marshal_flags(cast(^proxy)surface_, SURFACE_SET_BUFFER_SCALE, nil, proxy_get_version(cast(^proxy)surface_), 0, scale_)
 }
 
+/* Opcode for `surface_damage_buffer`. */
+SURFACE_DAMAGE_BUFFER :: 9
 /* This request is used to describe the regions where the pending
 	buffer is different from the current surface contents, and where
 	the surface therefore needs to be repainted. The compositor
@@ -1594,11 +1630,12 @@ surface_set_buffer_scale :: proc "contextless" (surface_: ^surface, scale_: int)
 	kinds of damage into account will have to accumulate damage from the
 	two requests separately and only transform from one to the other
 	after receiving the wl_surface.commit. */
-SURFACE_DAMAGE_BUFFER :: 9
 surface_damage_buffer :: proc "contextless" (surface_: ^surface, x_: int, y_: int, width_: int, height_: int) {
 	proxy_marshal_flags(cast(^proxy)surface_, SURFACE_DAMAGE_BUFFER, nil, proxy_get_version(cast(^proxy)surface_), 0, x_, y_, width_, height_)
 }
 
+/* Opcode for `surface_offset`. */
+SURFACE_OFFSET :: 10
 /* The x and y arguments specify the location of the new pending
 	buffer's upper left corner, relative to the current buffer's upper
 	left corner, in surface-local coordinates. In other words, the
@@ -1614,7 +1651,6 @@ surface_damage_buffer :: proc "contextless" (surface_: ^surface, x_: int, y_: in
 	This request is semantically equivalent to and the replaces the x and y
 	arguments in the wl_surface.attach request in wl_surface versions prior
 	to 5. See wl_surface.attach for details. */
-SURFACE_OFFSET :: 10
 surface_offset :: proc "contextless" (surface_: ^surface, x_: int, y_: int) {
 	proxy_marshal_flags(cast(^proxy)surface_, SURFACE_OFFSET, nil, proxy_get_version(cast(^proxy)surface_), 0, x_, y_)
 }
@@ -1713,6 +1749,8 @@ seat_get_user_data :: proc "contextless" (seat_: ^seat) -> rawptr {
    return proxy_get_user_data(cast(^proxy)seat_)
 }
 
+/* Opcode for `seat_get_pointer`. */
+SEAT_GET_POINTER :: 0
 /* The ID provided will be initialized to the wl_pointer interface
 	for this seat.
 
@@ -1721,12 +1759,13 @@ seat_get_user_data :: proc "contextless" (seat_: ^seat) -> rawptr {
 	It is a protocol violation to issue this request on a seat that has
 	never had the pointer capability. The missing_capability error will
 	be sent in this case. */
-SEAT_GET_POINTER :: 0
 seat_get_pointer :: proc "contextless" (seat_: ^seat) -> ^pointer {
 	ret := proxy_marshal_flags(cast(^proxy)seat_, SEAT_GET_POINTER, &pointer_interface, proxy_get_version(cast(^proxy)seat_), 0, nil)
 	return cast(^pointer)ret
 }
 
+/* Opcode for `seat_get_keyboard`. */
+SEAT_GET_KEYBOARD :: 1
 /* The ID provided will be initialized to the wl_keyboard interface
 	for this seat.
 
@@ -1735,12 +1774,13 @@ seat_get_pointer :: proc "contextless" (seat_: ^seat) -> ^pointer {
 	It is a protocol violation to issue this request on a seat that has
 	never had the keyboard capability. The missing_capability error will
 	be sent in this case. */
-SEAT_GET_KEYBOARD :: 1
 seat_get_keyboard :: proc "contextless" (seat_: ^seat) -> ^keyboard {
 	ret := proxy_marshal_flags(cast(^proxy)seat_, SEAT_GET_KEYBOARD, &keyboard_interface, proxy_get_version(cast(^proxy)seat_), 0, nil)
 	return cast(^keyboard)ret
 }
 
+/* Opcode for `seat_get_touch`. */
+SEAT_GET_TOUCH :: 2
 /* The ID provided will be initialized to the wl_touch interface
 	for this seat.
 
@@ -1749,15 +1789,15 @@ seat_get_keyboard :: proc "contextless" (seat_: ^seat) -> ^keyboard {
 	It is a protocol violation to issue this request on a seat that has
 	never had the touch capability. The missing_capability error will
 	be sent in this case. */
-SEAT_GET_TOUCH :: 2
 seat_get_touch :: proc "contextless" (seat_: ^seat) -> ^touch {
 	ret := proxy_marshal_flags(cast(^proxy)seat_, SEAT_GET_TOUCH, &touch_interface, proxy_get_version(cast(^proxy)seat_), 0, nil)
 	return cast(^touch)ret
 }
 
+/* Opcode for `seat_release`. */
+SEAT_RELEASE :: 3
 /* Using this request a client can tell the server that it is not going to
 	use the seat object anymore. */
-SEAT_RELEASE :: 3
 seat_release :: proc "contextless" (seat_: ^seat) {
 	proxy_marshal_flags(cast(^proxy)seat_, SEAT_RELEASE, nil, proxy_get_version(cast(^proxy)seat_), 1)
 }
@@ -1767,9 +1807,10 @@ seat_destroy :: proc "contextless" (seat_: ^seat) {
 }
 
 seat_listener :: struct {
-/* This is emitted whenever a seat gains or loses the pointer,
-	keyboard or touch capabilities.  The argument is a capability
-	enum containing the complete set of capabilities this seat has.
+/* This is sent on binding to the seat global or whenever a seat gains
+	or loses the pointer, keyboard or touch capabilities.
+	The argument is a capability enum containing the complete set of
+	capabilities this seat has.
 
 	When the pointer capability is added, a client may create a
 	wl_pointer object using the wl_seat.get_pointer request. This object
@@ -1803,9 +1844,9 @@ seat_listener :: struct {
 	The same seat names are used for all clients. Thus, the name can be
 	shared across processes to refer to a specific wl_seat global.
 
-	The name event is sent after binding to the seat global. This event is
-	only sent once per seat object, and the name does not change over the
-	lifetime of the wl_seat global.
+	The name event is sent after binding to the seat global, and should be sent
+	before announcing capabilities. This event only sent once per seat object,
+	and the name does not change over the lifetime of the wl_seat global.
 
 	Compositors may re-use the same seat name if the wl_seat global is
 	destroyed and re-created later. */
@@ -1859,6 +1900,8 @@ pointer_get_user_data :: proc "contextless" (pointer_: ^pointer) -> rawptr {
    return proxy_get_user_data(cast(^proxy)pointer_)
 }
 
+/* Opcode for `pointer_set_cursor`. */
+POINTER_SET_CURSOR :: 0
 /* Set the pointer surface, i.e., the surface that contains the
 	pointer image (cursor). This request gives the surface the role
 	of a cursor. If the surface already has another role, it raises
@@ -1892,17 +1935,17 @@ pointer_get_user_data :: proc "contextless" (pointer_: ^pointer) -> rawptr {
 	The serial parameter must match the latest wl_pointer.enter
 	serial number sent to the client. Otherwise the request will be
 	ignored. */
-POINTER_SET_CURSOR :: 0
 pointer_set_cursor :: proc "contextless" (pointer_: ^pointer, serial_: uint, surface_: ^surface, hotspot_x_: int, hotspot_y_: int) {
 	proxy_marshal_flags(cast(^proxy)pointer_, POINTER_SET_CURSOR, nil, proxy_get_version(cast(^proxy)pointer_), 0, serial_, surface_, hotspot_x_, hotspot_y_)
 }
 
+/* Opcode for `pointer_release`. */
+POINTER_RELEASE :: 1
 /* Using this request a client can tell the server that it is not going to
 	use the pointer object anymore.
 
 	This request destroys the pointer proxy object, so clients must not call
 	wl_pointer_destroy() after using this request. */
-POINTER_RELEASE :: 1
 pointer_release :: proc "contextless" (pointer_: ^pointer) {
 	proxy_marshal_flags(cast(^proxy)pointer_, POINTER_RELEASE, nil, proxy_get_version(cast(^proxy)pointer_), 1)
 }
@@ -2228,8 +2271,9 @@ keyboard_get_user_data :: proc "contextless" (keyboard_: ^keyboard) -> rawptr {
    return proxy_get_user_data(cast(^proxy)keyboard_)
 }
 
-/*  */
+/* Opcode for `keyboard_release`. */
 KEYBOARD_RELEASE :: 0
+/*  */
 keyboard_release :: proc "contextless" (keyboard_: ^keyboard) {
 	proxy_marshal_flags(cast(^proxy)keyboard_, KEYBOARD_RELEASE, nil, proxy_get_version(cast(^proxy)keyboard_), 1)
 }
@@ -2386,8 +2430,9 @@ touch_get_user_data :: proc "contextless" (touch_: ^touch) -> rawptr {
    return proxy_get_user_data(cast(^proxy)touch_)
 }
 
-/*  */
+/* Opcode for `touch_release`. */
 TOUCH_RELEASE :: 0
+/*  */
 touch_release :: proc "contextless" (touch_: ^touch) {
 	proxy_marshal_flags(cast(^proxy)touch_, TOUCH_RELEASE, nil, proxy_get_version(cast(^proxy)touch_), 1)
 }
@@ -2520,9 +2565,10 @@ output_get_user_data :: proc "contextless" (output_: ^output) -> rawptr {
    return proxy_get_user_data(cast(^proxy)output_)
 }
 
+/* Opcode for `output_release`. */
+OUTPUT_RELEASE :: 0
 /* Using this request a client can tell the server that it is not going to
 	use the output object anymore. */
-OUTPUT_RELEASE :: 0
 output_release :: proc "contextless" (output_: ^output) {
 	proxy_marshal_flags(cast(^proxy)output_, OUTPUT_RELEASE, nil, proxy_get_version(cast(^proxy)output_), 1)
 }
@@ -2732,20 +2778,23 @@ region_get_user_data :: proc "contextless" (region_: ^region) -> rawptr {
    return proxy_get_user_data(cast(^proxy)region_)
 }
 
-/* Destroy the region.  This will invalidate the object ID. */
+/* Opcode for `region_destroy`. */
 REGION_DESTROY :: 0
+/* Destroy the region.  This will invalidate the object ID. */
 region_destroy :: proc "contextless" (region_: ^region) {
 	proxy_marshal_flags(cast(^proxy)region_, REGION_DESTROY, nil, proxy_get_version(cast(^proxy)region_), 1)
 }
 
-/* Add the specified rectangle to the region. */
+/* Opcode for `region_add`. */
 REGION_ADD :: 1
+/* Add the specified rectangle to the region. */
 region_add :: proc "contextless" (region_: ^region, x_: int, y_: int, width_: int, height_: int) {
 	proxy_marshal_flags(cast(^proxy)region_, REGION_ADD, nil, proxy_get_version(cast(^proxy)region_), 0, x_, y_, width_, height_)
 }
 
-/* Subtract the specified rectangle from the region. */
+/* Opcode for `region_subtract`. */
 REGION_SUBTRACT :: 2
+/* Subtract the specified rectangle from the region. */
 region_subtract :: proc "contextless" (region_: ^region, x_: int, y_: int, width_: int, height_: int) {
 	proxy_marshal_flags(cast(^proxy)region_, REGION_SUBTRACT, nil, proxy_get_version(cast(^proxy)region_), 0, x_, y_, width_, height_)
 }
@@ -2787,14 +2836,17 @@ subcompositor_get_user_data :: proc "contextless" (subcompositor_: ^subcomposito
    return proxy_get_user_data(cast(^proxy)subcompositor_)
 }
 
+/* Opcode for `subcompositor_destroy`. */
+SUBCOMPOSITOR_DESTROY :: 0
 /* Informs the server that the client will not be using this
 	protocol object anymore. This does not affect any other
 	objects, wl_subsurface objects included. */
-SUBCOMPOSITOR_DESTROY :: 0
 subcompositor_destroy :: proc "contextless" (subcompositor_: ^subcompositor) {
 	proxy_marshal_flags(cast(^proxy)subcompositor_, SUBCOMPOSITOR_DESTROY, nil, proxy_get_version(cast(^proxy)subcompositor_), 1)
 }
 
+/* Opcode for `subcompositor_get_subsurface`. */
+SUBCOMPOSITOR_GET_SUBSURFACE :: 1
 /* Create a sub-surface interface for the given surface, and
 	associate it with the given parent surface. This turns a
 	plain wl_surface into a sub-surface.
@@ -2814,7 +2866,6 @@ subcompositor_destroy :: proc "contextless" (subcompositor_: ^subcompositor) {
 
 	This request modifies the behaviour of wl_surface.commit request on
 	the sub-surface, see the documentation on wl_subsurface interface. */
-SUBCOMPOSITOR_GET_SUBSURFACE :: 1
 subcompositor_get_subsurface :: proc "contextless" (subcompositor_: ^subcompositor, surface_: ^surface, parent_: ^surface) -> ^subsurface {
 	ret := proxy_marshal_flags(cast(^proxy)subcompositor_, SUBCOMPOSITOR_GET_SUBSURFACE, &subsurface_interface, proxy_get_version(cast(^proxy)subcompositor_), 0, nil, surface_, parent_)
 	return cast(^subsurface)ret
@@ -2894,15 +2945,18 @@ subsurface_get_user_data :: proc "contextless" (subsurface_: ^subsurface) -> raw
    return proxy_get_user_data(cast(^proxy)subsurface_)
 }
 
+/* Opcode for `subsurface_destroy`. */
+SUBSURFACE_DESTROY :: 0
 /* The sub-surface interface is removed from the wl_surface object
 	that was turned into a sub-surface with a
 	wl_subcompositor.get_subsurface request. The wl_surface's association
 	to the parent is deleted. The wl_surface is unmapped immediately. */
-SUBSURFACE_DESTROY :: 0
 subsurface_destroy :: proc "contextless" (subsurface_: ^subsurface) {
 	proxy_marshal_flags(cast(^proxy)subsurface_, SUBSURFACE_DESTROY, nil, proxy_get_version(cast(^proxy)subsurface_), 1)
 }
 
+/* Opcode for `subsurface_set_position`. */
+SUBSURFACE_SET_POSITION :: 1
 /* This schedules a sub-surface position change.
 	The sub-surface will be moved so that its origin (top left
 	corner pixel) will be at the location x, y of the parent surface
@@ -2917,11 +2971,12 @@ subsurface_destroy :: proc "contextless" (subsurface_: ^subsurface) {
 	replaces the scheduled position from any previous request.
 
 	The initial position is 0, 0. */
-SUBSURFACE_SET_POSITION :: 1
 subsurface_set_position :: proc "contextless" (subsurface_: ^subsurface, x_: int, y_: int) {
 	proxy_marshal_flags(cast(^proxy)subsurface_, SUBSURFACE_SET_POSITION, nil, proxy_get_version(cast(^proxy)subsurface_), 0, x_, y_)
 }
 
+/* Opcode for `subsurface_place_above`. */
+SUBSURFACE_PLACE_ABOVE :: 2
 /* This sub-surface is taken from the stack, and put back just
 	above the reference surface, changing the z-order of the sub-surfaces.
 	The reference surface must be one of the sibling surfaces, or the
@@ -2935,18 +2990,20 @@ subsurface_set_position :: proc "contextless" (subsurface_: ^subsurface, x_: int
 
 	A new sub-surface is initially added as the top-most in the stack
 	of its siblings and parent. */
-SUBSURFACE_PLACE_ABOVE :: 2
 subsurface_place_above :: proc "contextless" (subsurface_: ^subsurface, sibling_: ^surface) {
 	proxy_marshal_flags(cast(^proxy)subsurface_, SUBSURFACE_PLACE_ABOVE, nil, proxy_get_version(cast(^proxy)subsurface_), 0, sibling_)
 }
 
+/* Opcode for `subsurface_place_below`. */
+SUBSURFACE_PLACE_BELOW :: 3
 /* The sub-surface is placed just below the reference surface.
 	See wl_subsurface.place_above. */
-SUBSURFACE_PLACE_BELOW :: 3
 subsurface_place_below :: proc "contextless" (subsurface_: ^subsurface, sibling_: ^surface) {
 	proxy_marshal_flags(cast(^proxy)subsurface_, SUBSURFACE_PLACE_BELOW, nil, proxy_get_version(cast(^proxy)subsurface_), 0, sibling_)
 }
 
+/* Opcode for `subsurface_set_sync`. */
+SUBSURFACE_SET_SYNC :: 4
 /* Change the commit behaviour of the sub-surface to synchronized
 	mode, also described as the parent dependent mode.
 
@@ -2960,11 +3017,12 @@ subsurface_place_below :: proc "contextless" (subsurface_: ^subsurface, sibling_
 	parent surface commits do not (re-)apply old state.
 
 	See wl_subsurface for the recursive effect of this mode. */
-SUBSURFACE_SET_SYNC :: 4
 subsurface_set_sync :: proc "contextless" (subsurface_: ^subsurface) {
 	proxy_marshal_flags(cast(^proxy)subsurface_, SUBSURFACE_SET_SYNC, nil, proxy_get_version(cast(^proxy)subsurface_), 0)
 }
 
+/* Opcode for `subsurface_set_desync`. */
+SUBSURFACE_SET_DESYNC :: 5
 /* Change the commit behaviour of the sub-surface to desynchronized
 	mode, also described as independent or freely running mode.
 
@@ -2984,7 +3042,6 @@ subsurface_set_sync :: proc "contextless" (subsurface_: ^subsurface) {
 
 	If a surface's parent surface behaves as desynchronized, then
 	the cached state is applied on set_desync. */
-SUBSURFACE_SET_DESYNC :: 5
 subsurface_set_desync :: proc "contextless" (subsurface_: ^subsurface) {
 	proxy_marshal_flags(cast(^proxy)subsurface_, SUBSURFACE_SET_DESYNC, nil, proxy_get_version(cast(^proxy)subsurface_), 0)
 }
@@ -3016,12 +3073,15 @@ fixes_get_user_data :: proc "contextless" (fixes_: ^fixes) -> rawptr {
    return proxy_get_user_data(cast(^proxy)fixes_)
 }
 
-/*  */
+/* Opcode for `fixes_destroy`. */
 FIXES_DESTROY :: 0
+/*  */
 fixes_destroy :: proc "contextless" (fixes_: ^fixes) {
 	proxy_marshal_flags(cast(^proxy)fixes_, FIXES_DESTROY, nil, proxy_get_version(cast(^proxy)fixes_), 1)
 }
 
+/* Opcode for `fixes_destroy_registry`. */
+FIXES_DESTROY_REGISTRY :: 1
 /* This request destroys a wl_registry object.
 
 	The client should no longer use the wl_registry after making this
@@ -3031,7 +3091,6 @@ fixes_destroy :: proc "contextless" (fixes_: ^fixes) {
 	of the registry and will no longer emit any events on the registry. The
 	client should re-use the object ID once it receives the
 	wl_display.delete_id event. */
-FIXES_DESTROY_REGISTRY :: 1
 fixes_destroy_registry :: proc "contextless" (fixes_: ^fixes, registry_: ^registry) {
 	proxy_marshal_flags(cast(^proxy)fixes_, FIXES_DESTROY_REGISTRY, nil, proxy_get_version(cast(^proxy)fixes_), 0, registry_)
 }

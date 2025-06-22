@@ -24,19 +24,21 @@ viewporter_get_user_data :: proc "contextless" (viewporter_: ^viewporter) -> raw
    return proxy_get_user_data(cast(^proxy)viewporter_)
 }
 
+/* Opcode for `viewporter_destroy`. */
+VIEWPORTER_DESTROY :: 0
 /* Informs the server that the client will not be using this
 	protocol object anymore. This does not affect any other objects,
 	wp_viewport objects included. */
-VIEWPORTER_DESTROY :: 0
 viewporter_destroy :: proc "contextless" (viewporter_: ^viewporter) {
 	proxy_marshal_flags(cast(^proxy)viewporter_, VIEWPORTER_DESTROY, nil, proxy_get_version(cast(^proxy)viewporter_), 1)
 }
 
+/* Opcode for `viewporter_get_viewport`. */
+VIEWPORTER_GET_VIEWPORT :: 1
 /* Instantiate an interface extension for the given wl_surface to
 	crop and scale its content. If the given wl_surface already has
 	a wp_viewport object associated, the viewport_exists
 	protocol error is raised. */
-VIEWPORTER_GET_VIEWPORT :: 1
 viewporter_get_viewport :: proc "contextless" (viewporter_: ^viewporter, surface_: ^wl.surface) -> ^viewport {
 	ret := proxy_marshal_flags(cast(^proxy)viewporter_, VIEWPORTER_GET_VIEWPORT, &viewport_interface, proxy_get_version(cast(^proxy)viewporter_), 0, nil, surface_)
 	return cast(^viewport)ret
@@ -117,13 +119,16 @@ viewport_get_user_data :: proc "contextless" (viewport_: ^viewport) -> rawptr {
    return proxy_get_user_data(cast(^proxy)viewport_)
 }
 
+/* Opcode for `viewport_destroy`. */
+VIEWPORT_DESTROY :: 0
 /* The associated wl_surface's crop and scale state is removed.
 	The change is applied on the next wl_surface.commit. */
-VIEWPORT_DESTROY :: 0
 viewport_destroy :: proc "contextless" (viewport_: ^viewport) {
 	proxy_marshal_flags(cast(^proxy)viewport_, VIEWPORT_DESTROY, nil, proxy_get_version(cast(^proxy)viewport_), 1)
 }
 
+/* Opcode for `viewport_set_source`. */
+VIEWPORT_SET_SOURCE :: 1
 /* Set the source rectangle of the associated wl_surface. See
 	wp_viewport for the description, and relation to the wl_buffer
 	size.
@@ -134,11 +139,12 @@ viewport_destroy :: proc "contextless" (viewport_: ^viewport) {
 	error.
 
 	The crop and scale state is double-buffered, see wl_surface.commit. */
-VIEWPORT_SET_SOURCE :: 1
 viewport_set_source :: proc "contextless" (viewport_: ^viewport, x_: fixed_t, y_: fixed_t, width_: fixed_t, height_: fixed_t) {
 	proxy_marshal_flags(cast(^proxy)viewport_, VIEWPORT_SET_SOURCE, nil, proxy_get_version(cast(^proxy)viewport_), 0, x_, y_, width_, height_)
 }
 
+/* Opcode for `viewport_set_destination`. */
+VIEWPORT_SET_DESTINATION :: 2
 /* Set the destination size of the associated wl_surface. See
 	wp_viewport for the description, and relation to the wl_buffer
 	size.
@@ -149,7 +155,6 @@ viewport_set_source :: proc "contextless" (viewport_: ^viewport, x_: fixed_t, y_
 	error.
 
 	The crop and scale state is double-buffered, see wl_surface.commit. */
-VIEWPORT_SET_DESTINATION :: 2
 viewport_set_destination :: proc "contextless" (viewport_: ^viewport, width_: int, height_: int) {
 	proxy_marshal_flags(cast(^proxy)viewport_, VIEWPORT_SET_DESTINATION, nil, proxy_get_version(cast(^proxy)viewport_), 0, width_, height_)
 }
@@ -186,4 +191,4 @@ init_interfaces_viewporter :: proc() {
 }
 
 // Functions from libwayland-client
-import wl "shared:wayland"
+import wl ".."

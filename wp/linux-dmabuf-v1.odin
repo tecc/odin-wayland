@@ -90,40 +90,44 @@ linux_dmabuf_v1_get_user_data :: proc "contextless" (linux_dmabuf_v1_: ^linux_dm
    return proxy_get_user_data(cast(^proxy)linux_dmabuf_v1_)
 }
 
+/* Opcode for `linux_dmabuf_v1_destroy`. */
+LINUX_DMABUF_V1_DESTROY :: 0
 /* Objects created through this interface, especially wl_buffers, will
         remain valid. */
-LINUX_DMABUF_V1_DESTROY :: 0
 linux_dmabuf_v1_destroy :: proc "contextless" (linux_dmabuf_v1_: ^linux_dmabuf_v1) {
 	proxy_marshal_flags(cast(^proxy)linux_dmabuf_v1_, LINUX_DMABUF_V1_DESTROY, nil, proxy_get_version(cast(^proxy)linux_dmabuf_v1_), 1)
 }
 
+/* Opcode for `linux_dmabuf_v1_create_params`. */
+LINUX_DMABUF_V1_CREATE_PARAMS :: 1
 /* This temporary object is used to collect multiple dmabuf handles into
         a single batch to create a wl_buffer. It can only be used once and
         should be destroyed after a 'created' or 'failed' event has been
         received. */
-LINUX_DMABUF_V1_CREATE_PARAMS :: 1
 linux_dmabuf_v1_create_params :: proc "contextless" (linux_dmabuf_v1_: ^linux_dmabuf_v1) -> ^linux_buffer_params_v1 {
 	ret := proxy_marshal_flags(cast(^proxy)linux_dmabuf_v1_, LINUX_DMABUF_V1_CREATE_PARAMS, &linux_buffer_params_v1_interface, proxy_get_version(cast(^proxy)linux_dmabuf_v1_), 0, nil)
 	return cast(^linux_buffer_params_v1)ret
 }
 
+/* Opcode for `linux_dmabuf_v1_get_default_feedback`. */
+LINUX_DMABUF_V1_GET_DEFAULT_FEEDBACK :: 2
 /* This request creates a new wp_linux_dmabuf_feedback object not bound
         to a particular surface. This object will deliver feedback about dmabuf
         parameters to use if the client doesn't support per-surface feedback
         (see get_surface_feedback). */
-LINUX_DMABUF_V1_GET_DEFAULT_FEEDBACK :: 2
 linux_dmabuf_v1_get_default_feedback :: proc "contextless" (linux_dmabuf_v1_: ^linux_dmabuf_v1) -> ^linux_dmabuf_feedback_v1 {
 	ret := proxy_marshal_flags(cast(^proxy)linux_dmabuf_v1_, LINUX_DMABUF_V1_GET_DEFAULT_FEEDBACK, &linux_dmabuf_feedback_v1_interface, proxy_get_version(cast(^proxy)linux_dmabuf_v1_), 0, nil)
 	return cast(^linux_dmabuf_feedback_v1)ret
 }
 
+/* Opcode for `linux_dmabuf_v1_get_surface_feedback`. */
+LINUX_DMABUF_V1_GET_SURFACE_FEEDBACK :: 3
 /* This request creates a new wp_linux_dmabuf_feedback object for the
         specified wl_surface. This object will deliver feedback about dmabuf
         parameters to use for buffers attached to this surface.
 
         If the surface is destroyed before the wp_linux_dmabuf_feedback object,
         the feedback object becomes inert. */
-LINUX_DMABUF_V1_GET_SURFACE_FEEDBACK :: 3
 linux_dmabuf_v1_get_surface_feedback :: proc "contextless" (linux_dmabuf_v1_: ^linux_dmabuf_v1, surface_: ^wl.surface) -> ^linux_dmabuf_feedback_v1 {
 	ret := proxy_marshal_flags(cast(^proxy)linux_dmabuf_v1_, LINUX_DMABUF_V1_GET_SURFACE_FEEDBACK, &linux_dmabuf_feedback_v1_interface, proxy_get_version(cast(^proxy)linux_dmabuf_v1_), 0, nil, surface_)
 	return cast(^linux_dmabuf_feedback_v1)ret
@@ -213,13 +217,16 @@ linux_buffer_params_v1_get_user_data :: proc "contextless" (linux_buffer_params_
    return proxy_get_user_data(cast(^proxy)linux_buffer_params_v1_)
 }
 
+/* Opcode for `linux_buffer_params_v1_destroy`. */
+LINUX_BUFFER_PARAMS_V1_DESTROY :: 0
 /* Cleans up the temporary data sent to the server for dmabuf-based
         wl_buffer creation. */
-LINUX_BUFFER_PARAMS_V1_DESTROY :: 0
 linux_buffer_params_v1_destroy :: proc "contextless" (linux_buffer_params_v1_: ^linux_buffer_params_v1) {
 	proxy_marshal_flags(cast(^proxy)linux_buffer_params_v1_, LINUX_BUFFER_PARAMS_V1_DESTROY, nil, proxy_get_version(cast(^proxy)linux_buffer_params_v1_), 1)
 }
 
+/* Opcode for `linux_buffer_params_v1_add`. */
+LINUX_BUFFER_PARAMS_V1_ADD :: 1
 /* This request adds one dmabuf to the set in this
         zwp_linux_buffer_params_v1.
 
@@ -239,11 +246,12 @@ linux_buffer_params_v1_destroy :: proc "contextless" (linux_buffer_params_v1_: ^
         This request raises the PLANE_IDX error if plane_idx is too large.
         The error PLANE_SET is raised if attempting to set a plane that
         was already set. */
-LINUX_BUFFER_PARAMS_V1_ADD :: 1
 linux_buffer_params_v1_add :: proc "contextless" (linux_buffer_params_v1_: ^linux_buffer_params_v1, fd_: int, plane_idx_: uint, offset_: uint, stride_: uint, modifier_hi_: uint, modifier_lo_: uint) {
 	proxy_marshal_flags(cast(^proxy)linux_buffer_params_v1_, LINUX_BUFFER_PARAMS_V1_ADD, nil, proxy_get_version(cast(^proxy)linux_buffer_params_v1_), 0, fd_, plane_idx_, offset_, stride_, modifier_hi_, modifier_lo_)
 }
 
+/* Opcode for `linux_buffer_params_v1_create`. */
+LINUX_BUFFER_PARAMS_V1_CREATE :: 2
 /* This asks for creation of a wl_buffer from the added dmabuf
         buffers. The wl_buffer is not created immediately but returned via
         the 'created' event if the dmabuf sharing succeeds. The sharing
@@ -303,11 +311,12 @@ linux_buffer_params_v1_add :: proc "contextless" (linux_buffer_params_v1_: ^linu
 
         It is not mandatory to issue 'create'. If a client wants to
         cancel the buffer creation, it can just destroy this object. */
-LINUX_BUFFER_PARAMS_V1_CREATE :: 2
 linux_buffer_params_v1_create :: proc "contextless" (linux_buffer_params_v1_: ^linux_buffer_params_v1, width_: int, height_: int, format_: uint, flags_: linux_buffer_params_v1_flags) {
 	proxy_marshal_flags(cast(^proxy)linux_buffer_params_v1_, LINUX_BUFFER_PARAMS_V1_CREATE, nil, proxy_get_version(cast(^proxy)linux_buffer_params_v1_), 0, width_, height_, format_, flags_)
 }
 
+/* Opcode for `linux_buffer_params_v1_create_immed`. */
+LINUX_BUFFER_PARAMS_V1_CREATE_IMMED :: 3
 /* This asks for immediate creation of a wl_buffer by importing the
         added dmabufs.
 
@@ -331,7 +340,6 @@ linux_buffer_params_v1_create :: proc "contextless" (linux_buffer_params_v1_: ^l
 
         This takes the same arguments as a 'create' request, and obeys the
         same restrictions. */
-LINUX_BUFFER_PARAMS_V1_CREATE_IMMED :: 3
 linux_buffer_params_v1_create_immed :: proc "contextless" (linux_buffer_params_v1_: ^linux_buffer_params_v1, width_: int, height_: int, format_: uint, flags_: linux_buffer_params_v1_flags) -> ^wl.buffer {
 	ret := proxy_marshal_flags(cast(^proxy)linux_buffer_params_v1_, LINUX_BUFFER_PARAMS_V1_CREATE_IMMED, &wl.buffer_interface, proxy_get_version(cast(^proxy)linux_buffer_params_v1_), 0, nil, width_, height_, format_, flags_)
 	return cast(^wl.buffer)ret
@@ -424,9 +432,10 @@ linux_dmabuf_feedback_v1_get_user_data :: proc "contextless" (linux_dmabuf_feedb
    return proxy_get_user_data(cast(^proxy)linux_dmabuf_feedback_v1_)
 }
 
+/* Opcode for `linux_dmabuf_feedback_v1_destroy`. */
+LINUX_DMABUF_FEEDBACK_V1_DESTROY :: 0
 /* Using this request a client can tell the server that it is not going to
         use the wp_linux_dmabuf_feedback object anymore. */
-LINUX_DMABUF_FEEDBACK_V1_DESTROY :: 0
 linux_dmabuf_feedback_v1_destroy :: proc "contextless" (linux_dmabuf_feedback_v1_: ^linux_dmabuf_feedback_v1) {
 	proxy_marshal_flags(cast(^proxy)linux_dmabuf_feedback_v1_, LINUX_DMABUF_FEEDBACK_V1_DESTROY, nil, proxy_get_version(cast(^proxy)linux_dmabuf_feedback_v1_), 1)
 }
@@ -600,4 +609,4 @@ init_interfaces_linux_dmabuf_v1 :: proc() {
 }
 
 // Functions from libwayland-client
-import wl "shared:wayland"
+import wl ".."

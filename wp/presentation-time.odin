@@ -41,14 +41,17 @@ presentation_get_user_data :: proc "contextless" (presentation_: ^presentation) 
    return proxy_get_user_data(cast(^proxy)presentation_)
 }
 
+/* Opcode for `presentation_destroy`. */
+PRESENTATION_DESTROY :: 0
 /* Informs the server that the client will no longer be using
         this protocol object. Existing objects created by this object
         are not affected. */
-PRESENTATION_DESTROY :: 0
 presentation_destroy :: proc "contextless" (presentation_: ^presentation) {
 	proxy_marshal_flags(cast(^proxy)presentation_, PRESENTATION_DESTROY, nil, proxy_get_version(cast(^proxy)presentation_), 1)
 }
 
+/* Opcode for `presentation_get_feedback`. */
+PRESENTATION_GET_FEEDBACK :: 1
 /* Request presentation feedback for the current content submission
         on the given surface. This creates a new presentation_feedback
         object, which will deliver the feedback information once. If
@@ -57,7 +60,6 @@ presentation_destroy :: proc "contextless" (presentation_: ^presentation) {
 
         For details on what information is returned, see the
         presentation_feedback interface. */
-PRESENTATION_GET_FEEDBACK :: 1
 presentation_get_feedback :: proc "contextless" (presentation_: ^presentation, surface_: ^wl.surface) -> ^presentation_feedback {
 	ret := proxy_marshal_flags(cast(^proxy)presentation_, PRESENTATION_GET_FEEDBACK, &presentation_feedback_interface, proxy_get_version(cast(^proxy)presentation_), 0, nil, surface_)
 	return cast(^presentation_feedback)ret
@@ -241,7 +243,7 @@ init_interfaces_presentation_time :: proc() {
 }
 
 // Functions from libwayland-client
-import wl "shared:wayland"
+import wl ".."
 fixed_t :: wl.fixed_t
 proxy :: wl.proxy
 message :: wl.message
@@ -254,8 +256,6 @@ proxy_get_user_data :: wl.proxy_get_user_data
 proxy_set_user_data :: wl.proxy_set_user_data
 proxy_get_version :: wl.proxy_get_version
 proxy_marshal :: wl.proxy_marshal
-proxy_marshal_array :: wl.proxy_marshal_array
 proxy_marshal_flags :: wl.proxy_marshal_flags
-proxy_marshal_array_flags :: wl.proxy_marshal_array_flags
 proxy_marshal_constructor :: wl.proxy_marshal_constructor
 proxy_destroy :: wl.proxy_destroy
